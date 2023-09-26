@@ -62,16 +62,23 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 	if err != nil {
 		log.Fatal("Error evaluating query:", err)
 	}
+	fmt.Printf("This si Allowed: %v", rs[0].Expressions[0].Value)
 
 	// Iterate over the resultSet and print the result metadata
 	for _, result := range rs {
 		if len(result.Expressions) > 0 {
 			keys := result.Expressions[0].Value.(map[string]interface{})
+			fmt.Printf("VALUE: %v", result.Expressions[0].Value)
 			for key, value := range keys {
-				if value != true {
-					log.Errorf("Dockerfile validation policy: %s failed\n", key)
+				log.Infof("The Key is: %v of Type:%T, and The Value is %v of Type %T", key, key, value, value)
+				if valSlice, ok := value.([]interface{}); ok {
+					for _, item := range valSlice {
+						if val, ok := item.(string); ok {
+							fmt.Println(val)
+						}
+					}
 				} else {
-					fmt.Printf("Dockerfile validation policy: %s passed\n", key)
+					log.Errorf("Value for key %v is not a []interface{}", key)
 				}
 			}
 		} else {

@@ -2,7 +2,9 @@ dockerfile:
 - stage: 0
   instructions:
   - from: 
-    - "cgr.dev/chainguard/go:latest as builder"
+    # - "cgr.dev/chainguard/go:latest as builder"
+    - "gonag:latest as builder"
+
   - env:
     - "APP_HOME=/app"
   - run:
@@ -25,7 +27,8 @@ dockerfile:
 - stage: 1
   instructions:
   - from:
-    - "cgr.dev/chainguard/static:latest"
+    # - "cgr.dev/chainguard/static:latest"
+    - "gonag:latest as builder"
   - env:
     - "APP_USER=myappuser"
     - "APP_HOME=/app"
