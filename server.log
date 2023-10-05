@@ -1,0 +1,5 @@
+time="2023-10-05T16:35:55+05:30" level=info msg="Request Headers:"
+time="2023-10-05T16:35:55+05:30" level=info msg="Content-Type: [application/json]\n"
+time="2023-10-05T16:35:55+05:30" level=info msg="Accept-Encoding: [gzip]\n"
+time="2023-10-05T16:35:55+05:30" level=info msg="User-Agent: [Go-http-client/1.1]\n"
+time="2023-10-05T16:35:55+05:30" level=info msg="Content-Length: [1840]\n"
