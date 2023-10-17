@@ -23,7 +23,7 @@ func init() {
 func SetupAPI() *gin.Engine {
 	r := gin.Default()
 	r.POST("/generate", route.GenerateEndpoint)
-	r.POST("/cueval", route.CuevalEndPoint)
+	r.POST("/cueval", route.CuevalEndpoint)
 
 	return r
 }

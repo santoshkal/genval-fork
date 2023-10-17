@@ -18,11 +18,13 @@ func CuevalEndpoint(ctx *gin.Context) {
 		return
 	}
 
-	// Here, requestData.Resource and requestData.Value contain the data from the client request.
+	// requestData.Resource and requestData.Value contain the data from the client request.
+	// TODO: Test this
 	resource := requestData.Resource
 	value := requestData.Value
 
-	// You can then use the 'resource' and 'value' in the rest of your logic.
+	// Useing the 'resource' and 'value' in the rest of logic.
+	// TODO: Test this
 	//Update the call to Execute() prepending the package name
 	result, err := cueval.Execute(resource, value)
 	if err != nil {
