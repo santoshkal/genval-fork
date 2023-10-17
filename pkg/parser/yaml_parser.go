@@ -21,3 +21,8 @@ func ParseYAMLContent(yamlContent string) (*InputYAML, error) {
 	}
 	return &inputfileYAML, nil
 }
+
+func ParseRequestBody(content []byte, result interface{}) error {
+	// Unmarshal (decode) the content into the result interface.
+	return yaml.Unmarshal(content, result)
+}
