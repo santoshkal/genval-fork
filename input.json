@@ -5,7 +5,7 @@
         "instructions": [
           {
             "from": [
-              "cgr.dev/chainguard/go:latest as builder"
+              "nginx/chainguard/go:latest as builder"
             ]
           },
           {
@@ -52,7 +52,7 @@
         "instructions": [
           {
             "from": [
-              "cgr.dev/chainguard/static:latest"
+              "nginx/chainguard/static:latest"
             ]
           },
           {

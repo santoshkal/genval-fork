@@ -1,5 +1,7 @@
 package dockerfile_validation
 
+default check_base_image = "is a not a trusted base image. We reccomend using Chainguard images"
+
 check_base_image[msg] {
     input[i].cmd == "from"
     val := split(input[i].value, "/")
