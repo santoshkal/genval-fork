@@ -25,7 +25,7 @@ func init() {
 	})
 }
 
-func Execute(resource string, value, policy string) {
+func Execute(resource string, reqinput string, policies ...string) {
 	const modPath = "github.com/intelops/genval"
 	staticFS := embeder.CueDef
 
@@ -39,14 +39,14 @@ func Execute(resource string, value, policy string) {
 
 	// defPath := args[0]
 	// dataFile := args[1]
-	if resource == "" || value == "" || policy == "" {
+	if resource == "" || reqinput == "" || len(policies) == 0 {
 		fmt.Println("[Usage]: genval --mode=cue --resource=<Resource> --reqinput=<Input JSON> --policy <path/to/.cue schema file")
 		return
 	}
 
 	defPath := resource
-	dataFile := value
-	schemaFile := []string{policy}
+	dataFile := reqinput
+	schemaFile := policies
 
 	overlay, err := utils.GenerateOverlay(staticFS, td, schemaFile)
 	if err != nil {
@@ -54,7 +54,6 @@ func Execute(resource string, value, policy string) {
 	}
 
 	conf := &load.Config{
-		Dir:     td,
 		Overlay: overlay,
 		Module:  modPath,
 		Package: "*",
@@ -68,7 +67,44 @@ func Execute(resource string, value, policy string) {
 
 	defName := "#" + defPath
 
-	v, err := cuecore.BuildInstance(ctx, modPath, conf)
+	// _, copiedFilePaths, err := utils.CopyFilesToTempDir(schemaFile)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// ...
+
+	// ...
+
+	var policy string
+
+	for _, policyPath := range schemaFile {
+		log.Printf("PolicyPath: %v", policyPath)
+
+		// Check if the file exists
+		if _, err := os.Stat(policyPath); err != nil {
+			log.Printf("File %s does not exist: %v", policyPath, err)
+			continue
+		}
+
+		// policyContent, err := os.ReadFile(policyPath)
+		// if err != nil {
+		// 	log.Printf("Error reading file %s: %v", policyPath, err)
+		// 	continue // Continue with the next file
+		// }
+
+		policy = policyPath
+		// policy = string(policyContent)
+		break // Stop after processing the first file
+	}
+
+	if policy == "" {
+		log.Fatal("No valid policy found in copied files")
+	}
+
+	log.Printf("Contents of policy: %v\n", policy)
+
+	v, err := cuecore.BuildInstance(ctx, policy, conf)
 	if err != nil {
 		log.Fatal(err)
 	}

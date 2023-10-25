@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -114,21 +115,59 @@ func ReadPolicyFile(policyFile string) ([]byte, error) {
 			return nil, err
 		}
 
-		regoContent, err := io.ReadAll(resp.Body)
+		policyContent, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Errorf("error reading Rego policy from URL: %v", err)
 			return nil, err
 		}
 
-		return regoContent, nil
+		return policyContent, nil
 	} else {
 		// If not a URL, treat it as a local file path
-		regoContent, err := os.ReadFile(policyFile)
+		policyContent, err := os.ReadFile(policyFile)
 		if err != nil {
-			log.Errorf("error reading Rego policy from file: %v", err)
+			log.Errorf("error reading policy from file: %v", err)
 			return nil, err
 		}
 
-		return regoContent, nil
+		return policyContent, nil
 	}
+}
+
+func CopyFilesToTempDir(filesToCopy []string) (string, []string, error) {
+	// Create a temporary directory
+	tempDir, err := os.MkdirTemp("/tmp", "")
+	if err != nil {
+		return "", nil, err
+	}
+	fmt.Println("Temporary Directory:", tempDir)
+
+	// Create a slice to store the paths of copied files
+	copiedFilePaths := []string{}
+
+	// Loop through the file paths and copy them to the temporary directory
+	for _, filePath := range filesToCopy {
+		fileContent, err := os.ReadFile(filePath)
+		if err != nil {
+			return "", nil, err
+		}
+
+		destPath := filepath.Join(tempDir, filepath.Base(filePath))
+		err = os.WriteFile(destPath, fileContent, 0644)
+		if err != nil {
+			return "", nil, err
+		}
+
+		fmt.Printf("Copied %s to %s\n", filePath, destPath)
+
+		// Add the copied file's path to the slice
+		copiedFilePaths = append(copiedFilePaths, destPath)
+
+		// fmt.Printf("Length of CopiedPaths %v\n", len(copiedFilePaths))
+
+		// defer os.RemoveAll(tempDir) // Clean up the temporary directory when done
+	}
+
+	// Return the temporary directory path and the paths of copied files
+	return tempDir, copiedFilePaths, nil
 }
