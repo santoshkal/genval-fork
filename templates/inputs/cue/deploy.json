@@ -1,6 +1,12 @@
 {
     "apiVersion": "apps/v1",
     "kind": "Deployment", 
+    "metadata": {
+      "annotations": {
+        "key1" : "value1",
+        "key2" : "value2"
+      }
+    },
     "spec": {
       "selector": {
         "matchLabels": {

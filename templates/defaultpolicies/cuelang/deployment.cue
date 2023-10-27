@@ -1,15 +1,15 @@
-package k8s
+package foo
+
 import (
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
-	"github.com/intelops/genval/templates/defaultpolicies/cuelang:foo"
 )
 
 #Deployment: apps.#Deployment & {
 	apiVersion: "apps/v1"
 	kind:       "Deployment"
 
-	metadata: foo.Metadata
+	metadata: #Metadata
 
 	spec: apps.#DeploymentSpec & {
 		replicas:             int | *3
@@ -47,4 +47,3 @@ import (
 		}
 	}
 }
-

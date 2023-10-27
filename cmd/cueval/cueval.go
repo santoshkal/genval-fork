@@ -37,8 +37,6 @@ func Execute(resource string, reqinput string, policies ...string) {
 
 	ctx := cuecontext.New()
 
-	// defPath := args[0]
-	// dataFile := args[1]
 	if resource == "" || reqinput == "" || len(policies) == 0 {
 		fmt.Println("[Usage]: genval --mode=cue --resource=<Resource> --reqinput=<Input JSON> --policy <path/to/.cue schema file")
 		return
@@ -66,74 +64,69 @@ func Execute(resource string, reqinput string, policies ...string) {
 	}
 
 	defName := "#" + defPath
+	allOverlays := map[string]load.Source{}
 
-	// _, copiedFilePaths, err := utils.CopyFilesToTempDir(schemaFile)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// ...
-
-	// ...
-
-	var policy string
-
-	for _, policyPath := range schemaFile {
-		log.Printf("PolicyPath: %v", policyPath)
-
-		// Check if the file exists
-		if _, err := os.Stat(policyPath); err != nil {
-			log.Printf("File %s does not exist: %v", policyPath, err)
-			continue
-		}
-
-		// policyContent, err := os.ReadFile(policyPath)
-		// if err != nil {
-		// 	log.Printf("Error reading file %s: %v", policyPath, err)
-		// 	continue // Continue with the next file
-		// }
-
-		policy = policyPath
-		// policy = string(policyContent)
-		break // Stop after processing the first file
+	conf = &load.Config{
+		Overlay: overlay,
+		Module:  modPath,
+		Package: "*",
 	}
 
-	if policy == "" {
-		log.Fatal("No valid policy found in copied files")
-	}
-
-	log.Printf("Contents of policy: %v\n", policy)
-
-	v, err := cuecore.BuildInstance(ctx, policy, conf)
+	var unifiedPolicy cue.Value
+	firstPolicy := true
+	v, err := cuecore.BuildInstance(ctx, policies, conf)
 	if err != nil {
 		log.Fatal(err)
 	}
+	overlay, err = utils.GenerateOverlay(staticFS, td, policies)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for k, v := range overlay {
+		allOverlays[k] = v
+	}
+	conf.Overlay = overlay
 
-	for _, value := range v {
-		lookUp := cue.ParsePath(defName)
-		def := value.LookupPath(lookUp)
-		if def.Err() != nil {
-			log.Errorf("Error parsing Path: %v", def.Err())
-			return
+	for _, policyPath := range policies {
+		if len(v) == 0 {
+			log.Fatal("No instances found for policy: ", policyPath)
 		}
 
-		unifiedValue, err := cuecore.UnifyAndValidate(def, data)
-		if err != nil {
-			log.Errorf("Validation failed: %v", err)
-			return
+		if firstPolicy {
+			unifiedPolicy = v[0]
+		} else {
+			unifiedPolicy = unifiedPolicy.Unify(v[0])
+			if unifiedPolicy.Err() != nil {
+				log.Fatalf("Error unifying policies: %v", unifiedPolicy.Err())
+				return
+			}
 		}
+	}
+	conf.Overlay = allOverlays
 
-		yamlData, err := parser.CueToYAML(unifiedValue)
-		if err != nil {
-			log.Errorf("Error Marshaling: %v", err)
-			return
-		}
+	lookUp := cue.ParsePath(defName)
+	def := unifiedPolicy.LookupPath(lookUp)
+	if def.Err() != nil {
+		log.Errorf("Error parsing Path: %v", def.Err())
+		return
+	}
 
-		err = os.WriteFile(res+".yaml", yamlData, 0644)
-		if err != nil {
-			log.Errorf("Writing YAML: %v", err)
-			return
-		}
+	unifiedValue, err := cuecore.UnifyAndValidate(def, data)
+	if err != nil {
+		log.Errorf("Validation failed: %v", err)
+		return
+	}
+
+	yamlData, err := parser.CueToYAML(unifiedValue)
+	if err != nil {
+		log.Errorf("Error Marshaling: %v", err)
+		return
+	}
+
+	err = os.WriteFile(res+".yaml", yamlData, 0644)
+	if err != nil {
+		log.Errorf("Writing YAML: %v", err)
+		return
 	}
 
 	fmt.Printf("%v validation succeeded, generated manifest: %v.yaml\n", defPath, res)

@@ -9,9 +9,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func BuildInstance(ctx *cue.Context, td string, conf *load.Config) ([]cue.Value, error) {
+func BuildInstance(ctx *cue.Context, td []string, conf *load.Config) ([]cue.Value, error) {
 	var err error
-	bi := load.Instances([]string{td}, conf)
+	bi := load.Instances(td, conf)
 	if len(bi) == 0 {
 		return nil, fmt.Errorf("no instances found")
 	}
@@ -28,7 +28,7 @@ func UnifyAndValidate(def cue.Value, data cue.Value) (cue.Value, error) {
 		return cue.Value{}, value.Err()
 	}
 
-	err := value.Validate(cue.Concrete(true), cue.Final())
+	err := value.Validate(cue.Concrete(false), cue.Final())
 	if err != nil {
 		return cue.Value{}, err
 	}
