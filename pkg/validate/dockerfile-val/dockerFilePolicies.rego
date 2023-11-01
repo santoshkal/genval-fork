@@ -1,6 +1,6 @@
 package dockerfile_validation
 
-default check_base_image = "is a not a trusted base image. We reccomend using Chainguard images"
+# default check_base_image = "is a not a trusted base image. We reccomend using Chainguard images"
 
 check_base_image[msg] {
     input[i].cmd == "from"
@@ -19,19 +19,37 @@ check_base_image[msg] {
 
 
 # # Do not use root user
-# deny_root_user {
-#     input[i].cmd == "user"
-#     val2:= input[i].value
-#     val2 != "root"
-#     val2 != "0" 
-# }
+deny_root_user[msg] {
+    input[i].cmd == "user"
+    val2:= input[i].value
+    val2 != "root"
+    val2 != "0"
+    msg:= ("Image uses non root user") 
+}
+
+deny_root_user[msg] {
+    input[i].cmd == "user"
+    val2:= input[i].value
+    val2 == "root"
+    val2 == "0"
+    msg:= ("Image usesing root discouraged, validation failed") 
+}
 
 # # Do not sudo
-# deny_sudo{
-#     input[i].cmd == "run"
-#     val3:= input[i].value
-#     not contains(val3, "sudo")
-# }
+deny_sudo[msg]{
+    input[i].cmd == "run"
+    val3:= input[i].value
+    not contains(val3, "sudo")
+    msg:= sprintf("Image does not use sudo in RUN instruction",[])
+}
+
+deny_sudo[msg]{
+    input[i].cmd == "run"
+    val3:= input[i].value
+    # contains does not work with string. use some... in for check
+    contains(val3, "sudo")
+    msg:= sprintf("Using sudo in RUN declaritive is prohibited",[])
+}
 
 # # Avoid using cached layers CIS 4.7
 # deny_caching{
