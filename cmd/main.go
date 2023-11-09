@@ -11,7 +11,7 @@ import (
 )
 
 var mode, resource, reqinput, output, inputpolicy, outputpolicy string
-
+var verify bool
 var policies multiValueFlag
 
 func init() {
@@ -22,6 +22,7 @@ func init() {
 	flag.Var(&policies, "policy", "Validation policies, .cue files to be used in cue mode.")
 	flag.StringVar(&inputpolicy, "inputpolicy", "", "Rego policy to validate JSON input in container mode.")
 	flag.StringVar(&outputpolicy, "outputpolicy", "", "Rego policy to validate generated Dockerfile in container mode.")
+	flag.BoolVar(&verify, "verify", false, "Flag to perform validation and skip generation of final manifest")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, `Usage of genval:
@@ -61,7 +62,7 @@ func main() {
 		container.Execute(reqinput, output, inputpolicy, outputpolicy)
 	case "cue":
 		// Call the K8s mode's execution function
-		cueval.Execute(resource, reqinput, policies...)
+		cueval.Execute(resource, reqinput, verify, policies...)
 	default:
 		fmt.Println("Invalid mode. Choose 'container' or 'cue'.")
 		flag.Usage()

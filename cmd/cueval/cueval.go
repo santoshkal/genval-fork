@@ -25,7 +25,7 @@ func init() {
 	})
 }
 
-func Execute(resource, reqinput string, policies ...string) {
+func Execute(resource, reqinput string, verify bool, policies ...string) {
 
 	const modPath = "github.com/intelops/genval"
 	staticFS := embeder.CueDef
@@ -35,6 +35,11 @@ func Execute(resource, reqinput string, policies ...string) {
 		log.Fatal(err)
 	}
 	defer cleanup()
+	defer func() {
+		if err := utils.CleanupDownloadedDir(); err != nil {
+			log.Printf("Error removing cue_downloads directory: %v", err)
+		}
+	}()
 
 	ctx := cuecontext.New()
 
@@ -64,6 +69,7 @@ func Execute(resource, reqinput string, policies ...string) {
 	}
 
 	res, data, err := utils.ReadAndCompileData(defPath, dataFile)
+
 	if err != nil {
 		log.Fatalf("Error processing data: %v", err)
 		return
@@ -90,23 +96,28 @@ func Execute(resource, reqinput string, policies ...string) {
 			return
 		}
 
-		yamlData, err := parser.CueToYAML(unifiedValue)
-		if err != nil {
-			log.Errorf("Error Marshaling: %v", err)
-			return
-		}
+		// Only generate YAML if verify is set to false -- default
+		if !verify {
+			yamlData, err := parser.CueToYAML(unifiedValue)
+			if err != nil {
+				log.Errorf("Error Marshaling: %v", err)
+				return
+			}
 
-		err = os.WriteFile(res+".yaml", yamlData, 0644)
-		if err != nil {
-			log.Errorf("Writing YAML: %v", err)
-			return
+			err = os.WriteFile(res+".yaml", yamlData, 0644)
+			if err != nil {
+				log.Errorf("Writing YAML: %v", err)
+				return
+			}
+
 		}
 	}
 
-	if err := utils.CleanupDownloadedDir(); err != nil {
-		log.Printf("Error removing cue_downloads directory: %v", err)
+	// Only print the success log for generation if verify is false
+	if !verify {
+		log.Infof("%v validation succeeded, generated manifest: %v.yaml\n\n", defPath, res)
+	} else {
+		log.Infof("%v validation succeeded\n\n", defPath)
 	}
-
-	log.Infof("\n%v validation succeeded, generated manifest: %v.yaml\n\n", defPath, res)
 
 }

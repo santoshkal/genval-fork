@@ -1,8 +1,8 @@
-package foo
+package k8s
 
 import (
-    apps "k8s.io/api/apps/v1"
-    core "k8s.io/api/core/v1"
+	apps "k8s.io/api/apps/v1"
+	core "k8s.io/api/core/v1"
 )
 
 #Deployment: apps.#Deployment & {
@@ -12,7 +12,7 @@ import (
 	metadata: #Metadata
 
 	spec: apps.#DeploymentSpec & {
-		replicas:             int | *3
+		replicas:             int | *3 =<5
 		revisionHistoryLimit: int | *5 // Defaults to 5
 
 		template: {
@@ -21,7 +21,7 @@ import (
 			}
 			spec: core.#PodSpec & {
 				containers: [{
-					image: =~"^.*[^:latest]$"
+					image: !~"^(.*:latest$).*"
 					// ... [other fields]
 
 					securityContext: {
@@ -42,10 +42,24 @@ import (
 						}
 
 					}
+					readinessProbe: {
+						httpGet: {
+							port: number | *80
+						}
+						initialDelaySeconds: number | *5
+						failureThreshold:    number | *3
+						periodSeconds:       number | *10
+					}
+					livenessProbe: {
+						httpGet: {
+							port: number | *80
+						}
+						initialDelaySeconds: number | *5
+						failureThreshold:    number | *3
+						periodSeconds:       number | *10
+					}
 				}]
 			}
 		}
 	}
 }
-
-

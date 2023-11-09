@@ -1,4 +1,4 @@
-package foo
+package k8s
 
 #Metadata: {
 	name:      *"genval" | string
