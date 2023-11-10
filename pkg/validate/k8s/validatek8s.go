@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/intelops/genval/pkg/utils"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/open-policy-agent/opa/rego"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,6 +46,9 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 		log.Fatal("Error evaluating query:", err)
 	}
 
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Policy", "Status"})
 	var policyError error
 
 	for _, result := range rs {
@@ -51,10 +56,14 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 			keys := result.Expressions[0].Value.(map[string]interface{})
 			for key, value := range keys {
 				if value != true {
-					log.Errorf("Kubernetes validation policy: %s failed\n", key)
-					policyError = fmt.Errorf("kubernetes validation policy: %s failed", key)
+					errMsg := fmt.Sprintf("\nValidation policy: %s failed", key)
+					fmt.Println(color.New(color.FgRed).Sprintf(errMsg))
+					t.AppendRow(table.Row{key, color.New(color.FgRed).Sprint("failed")})
+					policyError = errors.New(errMsg)
 				} else {
-					fmt.Printf("Dockerfile validation policy: %s passed\n", key)
+					passMsg := fmt.Sprintf("Validation policy: %s passed", key)
+					fmt.Println(color.New(color.FgGreen).Sprintf(passMsg))
+					t.AppendRow(table.Row{key, color.New(color.FgGreen).Sprint("passed")})
 				}
 			}
 		} else {
@@ -62,8 +71,10 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 		}
 	}
 
+	// Render the table to STDOUT
+	t.Render()
+
 	if err != nil {
-		log.WithError(err).Error("Error evaluating Rego.")
 		return errors.New("error evaluating Rego")
 	}
 

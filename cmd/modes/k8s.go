@@ -18,10 +18,9 @@ func ExecuteK8s(reqinput string, policies ...string) {
 
 	err := validate.ValidateK8s(string(inputFile), policy)
 	if err != nil {
-		log.Errorf("Validation error: %v", err)
 		return
 	} else {
-		fmt.Printf("Input JSON validation succeeded!\n")
+		log.Printf("Input JSON validation succeeded!\n")
 	}
 
 }
