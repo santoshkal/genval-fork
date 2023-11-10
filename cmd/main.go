@@ -8,6 +8,7 @@ import (
 
 	"github.com/intelops/genval/cmd/container"
 	"github.com/intelops/genval/cmd/cueval"
+	"github.com/intelops/genval/cmd/k8s"
 )
 
 var mode, resource, reqinput, output, inputpolicy, outputpolicy string
@@ -63,6 +64,9 @@ func main() {
 	case "cue":
 		// Call the K8s mode's execution function
 		cueval.Execute(resource, reqinput, verify, policies...)
+	case "k8s":
+		// Call the K8s with rego mode's execution function
+		k8s.Execute(reqinput, policies...)
 	default:
 		fmt.Println("Invalid mode. Choose 'container' or 'cue'.")
 		flag.Usage()
