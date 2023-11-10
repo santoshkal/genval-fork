@@ -36,6 +36,7 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 		log.WithError(err).Error(errWithContext.Error())
 		return errWithContext
 	}
+	fmt.Printf("Commands: %v", commands)
 
 	ctx := context.Background()
 

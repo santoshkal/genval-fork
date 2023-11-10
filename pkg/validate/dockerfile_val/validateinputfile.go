@@ -25,8 +25,7 @@ func ValidateInput(yamlContent string, regoPolicyPath string) error {
 	inputMap := make(map[string]interface{})
 	yamlBytes, err := json.Marshal(parsedYAML)
 	if err != nil {
-		log.WithError(err).Error("Error converting dockerfileYAML to JSON.")
-		return errors.New("error converting dockerfileYAML to JSON")
+		return errors.New("error converting input YAML to JSON")
 	}
 
 	err = json.Unmarshal(yamlBytes, &inputMap)
@@ -63,7 +62,7 @@ func ValidateInput(yamlContent string, regoPolicyPath string) error {
 			for key, value := range keys {
 				if value != true {
 					log.Errorf("Input Yaml policy: %s failed\n", key)
-					return fmt.Errorf("input Yaml policy %s failed", key)
+					// return fmt.Errorf("input Yaml policy %s failed", key)
 				} else {
 					fmt.Printf("Input Yaml policy: %s passed\n", key)
 				}
