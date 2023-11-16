@@ -74,13 +74,16 @@ func main() {
 		// Call the Docker mode's execution function
 		modes.ExecuteContainer(reqinput, output, inputpolicy, outputpolicy)
 	case "cue":
-		// Call the K8s mode's execution function
+		// Call the Cue mode's execution function
 		modes.ExecuteCue(reqinput, resource, verify, policies...)
 	case "k8s":
 		// Call the K8s with rego mode's execution function
 		modes.ExecuteK8s(reqinput, policies...)
+	case "tf":
+		// Call the Tf with rego mode's execution function
+		modes.ExecuteTf(reqinput, policies...)
 	default:
-		fmt.Println("Invalid mode. Choose 'container' or 'cue', or 'k8s'.")
+		fmt.Println("Invalid mode. Choose 'container', 'cue', 'k8s' or 'tf'.")
 		flag.Usage()
 	}
 }

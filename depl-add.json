@@ -1,0 +1,7 @@
+"envFrom": [
+    {
+      "secretRef": {
+        "name": "test-secret"
+      }
+    }
+  ]

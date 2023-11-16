@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	validate "github.com/intelops/genval/pkg/validate/k8s"
-	log "github.com/sirupsen/logrus"
 )
 
 func ExecuteK8s(reqinput string, policies ...string) {
@@ -19,8 +18,5 @@ func ExecuteK8s(reqinput string, policies ...string) {
 	err := validate.ValidateK8s(string(inputFile), policy)
 	if err != nil {
 		return
-	} else {
-		log.Printf("Input JSON validation succeeded!\n")
 	}
-
 }

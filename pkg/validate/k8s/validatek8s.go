@@ -15,15 +15,16 @@ import (
 )
 
 func ValidateK8s(inputContent string, regoPolicy string) error {
-	k8sPolicy, err := utils.ReadPolicyFile(regoPolicy)
-	if err != nil {
-		log.WithError(err).Error("Error reading the policy file.")
-		return err
-	}
 
 	jsonData, err := os.ReadFile(inputContent)
 	if err != nil {
 		log.Fatalf("Error reading JSON file: %v", err)
+	}
+
+	k8sPolicy, err := utils.ReadPolicyFile(regoPolicy)
+	if err != nil {
+		log.WithError(err).Error("Error reading the policy file.")
+		return err
 	}
 
 	var commands map[string]interface{}
@@ -35,7 +36,7 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 
 	// Create regoQuery for evaluation
 	regoQuery := rego.New(
-		rego.Query("data.validate_k8s"),
+		rego.Query("data.validate"),
 		rego.Module(regoPolicy, string(k8sPolicy)),
 		rego.Input(commands),
 	)
@@ -56,7 +57,7 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 			keys := result.Expressions[0].Value.(map[string]interface{})
 			for key, value := range keys {
 				if value != true {
-					errMsg := fmt.Sprintf("\nValidation policy: %s failed", key)
+					errMsg := fmt.Sprintf("Validation policy: %s failed", key)
 					fmt.Println(color.New(color.FgRed).Sprintf(errMsg))
 					t.AppendRow(table.Row{key, color.New(color.FgRed).Sprint("failed")})
 					policyError = errors.New(errMsg)
