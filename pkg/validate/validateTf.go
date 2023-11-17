@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/fatih/color"
@@ -53,13 +52,8 @@ func ValidateTf(inputContent string, regoPolicy string) error {
 			keys := result.Expressions[0].Value.(map[string]interface{})
 			for key, value := range keys {
 				if value != true {
-					errMsg := fmt.Sprintf("Validation policy: %s failed", key)
-					fmt.Println(color.New(color.FgRed).Sprintf(errMsg))
 					t.AppendRow(table.Row{key, color.New(color.FgRed).Sprint("failed")})
-					policyError = errors.New(errMsg)
 				} else {
-					passMsg := fmt.Sprintf("Validation policy: %s passed", key)
-					fmt.Println(color.New(color.FgGreen).Sprintf(passMsg))
 					t.AppendRow(table.Row{key, color.New(color.FgGreen).Sprint("passed")})
 				}
 			}
@@ -68,7 +62,6 @@ func ValidateTf(inputContent string, regoPolicy string) error {
 		}
 	}
 
-	// Render the table to STDOUT
 	t.Render()
 
 	if err != nil {

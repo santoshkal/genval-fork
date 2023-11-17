@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
+	"github.com/fatih/color"
 	"github.com/intelops/genval/pkg/parser"
 	"github.com/intelops/genval/pkg/utils"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/open-policy-agent/opa/rego"
 	log "github.com/sirupsen/logrus"
 )
@@ -36,7 +39,6 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 		log.WithError(err).Error(errWithContext.Error())
 		return errWithContext
 	}
-	fmt.Printf("Commands: %v", commands)
 
 	ctx := context.Background()
 
@@ -53,6 +55,9 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 		log.Fatal("Error evaluating query:", err)
 	}
 
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Policy", "Status"})
 	var policyError error
 
 	for _, result := range rs {
@@ -60,10 +65,9 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 			keys := result.Expressions[0].Value.(map[string]interface{})
 			for key, value := range keys {
 				if value != true {
-					log.Errorf("Dockerfile validation policy: %s failed\n", key)
-					policyError = fmt.Errorf("dockerfile validation policy: %s failed", key)
+					t.AppendRow(table.Row{key, color.New(color.FgRed).Sprint("failed")})
 				} else {
-					fmt.Printf("Dockerfile validation policy: %s passed\n", key)
+					t.AppendRow(table.Row{key, color.New(color.FgGreen).Sprint("passed")})
 				}
 			}
 		} else {
@@ -71,10 +75,12 @@ func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
 		}
 	}
 
+	t.Render()
+
 	if err != nil {
-		log.WithError(err).Error("Error evaluating Rego.")
 		return errors.New("error evaluating Rego")
 	}
 
 	return policyError
+
 }
