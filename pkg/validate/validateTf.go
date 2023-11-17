@@ -14,13 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ValidateK8s(inputContent string, regoPolicy string) error {
-
-	// If input is a file
-	jsonData, err := os.ReadFile(inputContent)
-	if err != nil {
-		log.Fatalf("Error reading JSON file: %v", err)
-	}
+func ValidateTf(inputContent string, regoPolicy string) error {
+	jsonData := []byte(inputContent)
 
 	k8sPolicy, err := utils.ReadPolicyFile(regoPolicy)
 	if err != nil {
@@ -37,10 +32,11 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 
 	// Create regoQuery for evaluation
 	regoQuery := rego.New(
-		rego.Query("data.validate"),
+		rego.Query("data.validate_tf"),
 		rego.Module(regoPolicy, string(k8sPolicy)),
 		rego.Input(commands),
 	)
+	fmt.Printf("Commands: %v", commands)
 
 	// Evaluate the Rego query
 	rs, err := regoQuery.Eval(ctx)
@@ -81,4 +77,5 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 	}
 
 	return policyError
+
 }

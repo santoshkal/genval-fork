@@ -52,11 +52,17 @@ Modes:
     Arguments: <reqinput.json> <Rego policy>
     Example usage:
       ./genval --mode=k8s --reqinput=deployment.json --policy=<path/to/.rego policy>
+
+%s
+  - tf: Terraform resource validation with Rego policies.
+    Arguments: <reqinput.json> <Rego policy>
+    Example usage:
+      ./genval --mode=tf --reqinput=deployment.json --policy=<path/to/.rego policy>
 						
 `
 
 		modeHeading := color.New(color.FgGreen, color.Bold).SprintfFunc()
-		fmt.Fprintf(os.Stderr, helpText, modeHeading("Container Mode:"), modeHeading("Cue Mode:"), modeHeading("K8s Mode:"))
+		fmt.Fprintf(os.Stderr, helpText, modeHeading("Container Mode:"), modeHeading("Cue Mode:"), modeHeading("K8s Mode:"), modeHeading("Terraform Mode:"))
 		flagsHeader := color.New(color.FgYellow, color.Bold).Sprint("Available flags:")
 		fmt.Fprintf(os.Stderr, "\n%s\n\n", flagsHeader)
 
@@ -78,10 +84,10 @@ func main() {
 		modes.ExecuteCue(reqinput, resource, verify, policies...)
 	case "k8s":
 		// Call the K8s with rego mode's execution function
-		modes.ExecuteK8s(reqinput, policies...)
+		modes.ExecuteK8s(reqinput, inputpolicy)
 	case "tf":
 		// Call the Tf with rego mode's execution function
-		modes.ExecuteTf(reqinput, policies...)
+		modes.ExecuteTf(reqinput, inputpolicy)
 	default:
 		fmt.Println("Invalid mode. Choose 'container', 'cue', 'k8s' or 'tf'.")
 		flag.Usage()

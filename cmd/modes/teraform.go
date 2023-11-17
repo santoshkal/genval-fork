@@ -4,25 +4,25 @@ import (
 	"fmt"
 
 	"github.com/intelops/genval/pkg/parser"
-	validate "github.com/intelops/genval/pkg/validate/k8s"
+	validate "github.com/intelops/genval/pkg/validate"
 	log "github.com/sirupsen/logrus"
 )
 
-func ExecuteTf(reqinput string, policies ...string) {
-	if reqinput == "" || len(policies) == 0 {
+func ExecuteTf(reqinput, inputpolicy string) {
+	if reqinput == "" || inputpolicy == "" {
 		fmt.Println("[USAGE]: ./genval --mode=tf --reqinput=input.json/yaml --policy=<path/to/rego policy>.")
 		return
 	}
 
 	inputFile := reqinput
-	policy := policies[0]
+	policy := inputpolicy
 
 	inputJSON, err := parser.ConvertTFtoJSON(inputFile)
 	if err != nil {
 		log.Errorf("Error converting tf file: %v", err)
 	}
 
-	err = validate.ValidateK8s(inputJSON, policy)
+	err = validate.ValidateTf(inputJSON, policy)
 	if err != nil {
 		log.Errorf("Error parsing Terraform resource: %v", err)
 		return
