@@ -8,21 +8,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func ExecuteTf(reqinput, inputpolicy string) {
-	if reqinput == "" || inputpolicy == "" {
+func ExecuteTf(reqinput string, policies ...string) {
+	if reqinput == "" || len(policies) == 0 {
 		fmt.Println("[USAGE]: ./genval --mode=tf --reqinput=input.json/yaml --policy=<path/to/rego policy>.")
 		return
 	}
 
 	inputFile := reqinput
-	policy := inputpolicy
+	policy := policies
 
 	inputJSON, err := parser.ConvertTFtoJSON(inputFile)
 	if err != nil {
 		log.Errorf("Error converting tf file: %v", err)
 	}
 
-	err = validate.ValidateTf(inputJSON, policy)
+	err = validate.ValidateWithRego(inputJSON, policy[0])
 	if err != nil {
 		log.Errorf("Validation %v failed", err)
 		return

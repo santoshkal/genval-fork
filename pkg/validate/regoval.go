@@ -7,18 +7,19 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/intelops/genval/pkg/parser"
 	"github.com/intelops/genval/pkg/utils"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/open-policy-agent/opa/rego"
 	log "github.com/sirupsen/logrus"
 )
 
-func ValidateK8s(inputContent string, regoPolicy string) error {
+func ValidateWithRego(inputContent string, regoPolicy string) error {
 
 	// If input is a file
-	jsonData, err := os.ReadFile(inputContent)
+	jsonData, err := parser.ProcessInput(inputContent)
 	if err != nil {
-		log.Fatalf("Error reading JSON file: %v", err)
+		log.Fatalf("Error reading input content file: %v", err)
 	}
 
 	k8sPolicy, pkg, err := utils.ReadPolicyFile(regoPolicy)

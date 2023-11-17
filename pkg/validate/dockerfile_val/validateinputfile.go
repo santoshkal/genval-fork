@@ -17,21 +17,16 @@ import (
 )
 
 func ValidateInput(yamlContent string, regoPolicyPath string) error {
-	// Parse the YAML content
-	parsedYAML, err := parser.ParseYAMLContent(yamlContent)
+
+	inputBytes, err := parser.ProcessInput(yamlContent)
 	if err != nil {
-		log.WithError(err).Error("Error parsing YAML.")
-		return errors.New("error parsing YAML")
+		log.Errorf("Error parsing input content: %v", err)
 	}
 
 	// Convert the dockerfileYAML struct to a map for rego input
 	inputMap := make(map[string]interface{})
-	yamlBytes, err := json.Marshal(parsedYAML)
-	if err != nil {
-		return errors.New("error converting input YAML to JSON")
-	}
 
-	err = json.Unmarshal(yamlBytes, &inputMap)
+	err = json.Unmarshal(inputBytes, &inputMap)
 	if err != nil {
 		errWithContext := fmt.Errorf("error converting JSON to map: %v", err)
 		log.WithError(err).Error(errWithContext.Error())

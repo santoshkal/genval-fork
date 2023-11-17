@@ -33,7 +33,7 @@ func ExecuteContainer(value, output, inputpolicy, outputpolicy string) {
 	// Use ParseInputFile to read and unmarshal the input file
 	var data generate.DockerfileContent
 
-	err := parser.ReadAndParseFile(inputPath, &data)
+	err := parser.ParseDockerfileInput(inputPath, &data)
 	if err != nil {
 		log.Error("Error:", err)
 		return

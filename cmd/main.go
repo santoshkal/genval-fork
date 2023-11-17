@@ -84,10 +84,10 @@ func main() {
 		modes.ExecuteCue(reqinput, resource, verify, policies...)
 	case "k8s":
 		// Call the K8s with rego mode's execution function
-		modes.ExecuteK8s(reqinput, inputpolicy)
+		modes.ExecuteK8s(reqinput, policies...)
 	case "tf":
 		// Call the Tf with rego mode's execution function
-		modes.ExecuteTf(reqinput, inputpolicy)
+		modes.ExecuteTf(reqinput, policies...)
 	default:
 		fmt.Println("Invalid mode. Choose 'container', 'cue', 'k8s' or 'tf'.")
 		flag.Usage()

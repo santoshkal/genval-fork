@@ -150,7 +150,7 @@ func ReadPolicyFile(policyFile string) ([]byte, string, error) {
 }
 
 // isURL checks if the given string is a valid URL.
-func isURL(s string) bool {
+func IsURL(s string) bool {
 	u, err := url.Parse(s)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
@@ -172,7 +172,7 @@ func fetchFileWithCURL(urlStr string) (string, error) {
 	}
 
 	// Create a specific directory in /tmp to store the file
-	dir := filepath.Join(os.TempDir(), "cue_downloads")
+	dir := filepath.Join(os.TempDir(), "genval_temp")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.Mkdir(dir, 0700)
 	}
@@ -189,7 +189,7 @@ func fetchFileWithCURL(urlStr string) (string, error) {
 func ProcessInputs(inputs []string) ([]string, error) {
 	var filenames []string
 	for _, input := range inputs {
-		if isURL(input) {
+		if IsURL(input) {
 			filename, err := fetchFileWithCURL(input)
 			if err != nil {
 				return nil, err
