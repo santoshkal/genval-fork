@@ -17,7 +17,7 @@ import (
 func ValidateTf(inputContent string, regoPolicy string) error {
 	jsonData := []byte(inputContent)
 
-	k8sPolicy, err := utils.ReadPolicyFile(regoPolicy)
+	tfPolicy, pkg, err := utils.ReadPolicyFile(regoPolicy)
 	if err != nil {
 		log.WithError(err).Error("Error reading the policy file.")
 		return err
@@ -32,11 +32,10 @@ func ValidateTf(inputContent string, regoPolicy string) error {
 
 	// Create regoQuery for evaluation
 	regoQuery := rego.New(
-		rego.Query("data.validate_tf"),
-		rego.Module(regoPolicy, string(k8sPolicy)),
+		rego.Query("data."+pkg),
+		rego.Module(regoPolicy, string(tfPolicy)),
 		rego.Input(commands),
 	)
-	fmt.Printf("Commands: %v", commands)
 
 	// Evaluate the Rego query
 	rs, err := regoQuery.Eval(ctx)

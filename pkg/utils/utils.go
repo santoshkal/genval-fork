@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -60,7 +62,7 @@ func GenerateOverlay(staticFS fs.FS, td string, additionalFiles []string) (map[s
 
 	// Add files from additionalFiles
 	for _, filePath := range additionalFiles {
-		fileBytes, err := ReadPolicyFile(filePath)
+		fileBytes, _, err := ReadPolicyFile(filePath)
 		if err != nil {
 			log.Errorf("Error reading schema:%v", err)
 			return nil, err
@@ -102,40 +104,49 @@ func ReadSchemaFile(schema string) []byte {
 }
 
 // ReadPolicyFile read the policy provided from cli args, accepts polices from a remote URL or local file
-func ReadPolicyFile(policyFile string) ([]byte, error) {
+func ReadPolicyFile(policyFile string) ([]byte, string, error) {
+	var policyContent []byte
+	var err error
+
 	// Attempt to parse the policyFile as a URL
 	u, err := url.ParseRequestURI(policyFile)
 	if err == nil && u.Scheme != "" && u.Host != "" {
 		// It's a URL, fetch content
-		resp, err := http.Get(u.String())
+		var resp *http.Response
+		resp, err = http.Get(u.String())
 		if err != nil {
-			log.Errorf("error fetching Rego policy from URL: %v", err)
-			return nil, err
+			log.Printf("error fetching Rego policy from URL: %v", err)
+			return nil, "", err
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			log.Errorf("error fetching policy from URL: status code %d", resp.StatusCode)
-			return nil, err
+			log.Printf("error fetching policy from URL: status code %d", resp.StatusCode)
+			return nil, "", err
 		}
 
-		policyContent, err := io.ReadAll(resp.Body)
+		policyContent, err = io.ReadAll(resp.Body)
 		if err != nil {
-			log.Errorf("error reading policy from URL: %v", err)
-			return nil, err
+			log.Printf("error reading policy from URL: %v", err)
+			return nil, "", err
 		}
-
-		return policyContent, nil
 	} else {
 		// If not a URL, treat it as a local file path
-		policyContent, err := os.ReadFile(policyFile)
+		policyContent, err = os.ReadFile(policyFile)
 		if err != nil {
-			log.Errorf("error reading policy from file: %v", err)
-			return nil, err
+			log.Printf("error reading policy from file: %v", err)
+			return nil, "", err
 		}
-
-		return policyContent, nil
 	}
+
+	// Extract package name from policy content
+	packageName, err := extractPackageName(policyContent)
+	if err != nil {
+		log.Printf("error extracting package name: %v", err)
+		return nil, "", err
+	}
+
+	return policyContent, packageName, nil
 }
 
 // isURL checks if the given string is a valid URL.
@@ -201,4 +212,25 @@ func ProcessInputs(inputs []string) ([]string, error) {
 func CleanupDownloadedDir() error {
 	dir := filepath.Join(os.TempDir(), "cue_downloads")
 	return os.RemoveAll(dir)
+}
+
+// extractPackageName scans the content and finds the package name from the Rego policy.
+func extractPackageName(content []byte) (string, error) {
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "package ") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				return parts[1], nil
+			}
+			break
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", io.EOF
 }

@@ -37,14 +37,14 @@ func ValidateInput(yamlContent string, regoPolicyPath string) error {
 	ctx := context.Background()
 
 	// Read the Rego policy from the given path
-	regoContent, err := utils.ReadPolicyFile(regoPolicyPath)
+	regoContent, pkg, err := utils.ReadPolicyFile(regoPolicyPath)
 	if err != nil {
 		return fmt.Errorf("error reading Rego policy: %v", err)
 	}
 
 	// Create Rego for query and evaluation
 	regoQuery := rego.New(
-		rego.Query("data.validate_input"), // Using hardcoded query as before
+		rego.Query("data."+pkg), // Using hardcoded query as before
 		rego.Module(regoPolicyPath, string(regoContent)),
 		rego.Input(inputMap),
 	)

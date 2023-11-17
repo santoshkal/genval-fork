@@ -24,7 +24,7 @@ func ExecuteTf(reqinput, inputpolicy string) {
 
 	err = validate.ValidateTf(inputJSON, policy)
 	if err != nil {
-		log.Errorf("Error parsing Terraform resource: %v", err)
+		log.Errorf("Validation %v failed", err)
 		return
 	}
 }

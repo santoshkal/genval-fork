@@ -22,7 +22,7 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 		log.Fatalf("Error reading JSON file: %v", err)
 	}
 
-	k8sPolicy, err := utils.ReadPolicyFile(regoPolicy)
+	k8sPolicy, pkg, err := utils.ReadPolicyFile(regoPolicy)
 	if err != nil {
 		log.WithError(err).Error("Error reading the policy file.")
 		return err
@@ -37,7 +37,7 @@ func ValidateK8s(inputContent string, regoPolicy string) error {
 
 	// Create regoQuery for evaluation
 	regoQuery := rego.New(
-		rego.Query("data.validate"),
+		rego.Query("data."+pkg),
 		rego.Module(regoPolicy, string(k8sPolicy)),
 		rego.Input(commands),
 	)

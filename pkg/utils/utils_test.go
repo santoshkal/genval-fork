@@ -100,55 +100,65 @@ func (c *MockHTTPClient) RoundTrip(req *http.Request) (*http.Response, error) {
 // Test for ReadRegoFile using above mock
 
 func TestReadRegoFile(t *testing.T) {
-	// Mock HTTP client
+	// Mock HTTP client setup (if you're mocking HTTP requests)
+	// Mock HTTP client setup
 	mockClient := &MockHTTPClient{
 		Response: MockHTTPResponse{
 			StatusCode: 200,
-			Body:       strings.NewReader("test content from URL"),
+			Body:       strings.NewReader("package test\n\ntest content from URL"),
 		},
 	}
+	oldTransport := http.DefaultClient.Transport
 	http.DefaultClient.Transport = mockClient
+	defer func() { http.DefaultClient.Transport = oldTransport }()
 
 	tests := []struct {
-		name       string
-		policyFile string
-		want       []byte
-		wantErr    bool
+		name            string
+		policyFile      string
+		wantContent     []byte
+		wantPackageName string
+		wantErr         bool
 	}{
 		{
-			name:       "Read from valid URL",
-			policyFile: "http://valid-url.com",
-			want:       []byte("test content from URL"),
-			wantErr:    false,
+			name:            "Read from valid URL",
+			policyFile:      "http://valid-url.com",
+			wantContent:     []byte("package test\n\ntest content from URL"),
+			wantPackageName: "test",
+			wantErr:         false,
 		},
 		{
-			name:       "Read from invalid URL",
-			policyFile: "invalid-url",
-			want:       nil,
-			wantErr:    true,
+			name:            "Read from invalid URL",
+			policyFile:      "invalid-url",
+			wantContent:     nil,
+			wantPackageName: "",
+			wantErr:         true,
 		},
 		{
-			name:       "Read from local file",
-			policyFile: "test.rego",
-			want:       []byte("test content from file"),
-			wantErr:    false,
+			name:            "Read from local file",
+			policyFile:      "test.rego",
+			wantContent:     []byte("package test\n\ntest content from file"),
+			wantPackageName: "test",
+			wantErr:         false,
 		},
 		// Add more test cases as needed...
 	}
 
 	// Create a sample file for testing
-	os.WriteFile("test.rego", []byte("test content from file"), 0644)
+	os.WriteFile("test.rego", []byte("package test\n\ntest content from file"), 0644)
 	defer os.Remove("test.rego")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadPolicyFile(tt.policyFile)
+			gotContent, gotPackageName, err := ReadPolicyFile(tt.policyFile)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ReadRegoFile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ReadPolicyFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReadRegoFile() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(gotContent, tt.wantContent) {
+				t.Errorf("ReadPolicyFile() content = %v, want %v", string(gotContent), string(tt.wantContent))
+			}
+			if gotPackageName != tt.wantPackageName {
+				t.Errorf("ReadPolicyFile() packageName = %v, want %v", gotPackageName, tt.wantPackageName)
 			}
 		})
 	}
