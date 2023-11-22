@@ -1,0 +1,38 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "namespace": "websites"
+  },
+  "spec": {
+    "selector": {
+      "matchLabels": {
+        "app": "cuetest"
+      }
+    },
+    "minReadySeconds": 5,
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "cuetest"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "website",
+            "image": "nginx:1.20",
+            "imagePullPolicy": "Always",
+            "ports": [
+              {
+                "containerPort": 80,
+                "protocol": "TCP"
+              }
+            ]
+
+          }
+        ]
+      }
+    }
+  }
+}

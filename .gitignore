@@ -1,5 +1,6 @@
 input.yaml
 input.json
 /bin
+/images
 /output
 coverage.out
