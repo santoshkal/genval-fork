@@ -1,4 +1,4 @@
-package k8s
+package kube
 
 #Metadata: {
 	name:      *"genval" | string

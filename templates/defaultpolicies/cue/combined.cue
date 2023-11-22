@@ -5,6 +5,8 @@ import (
 	core "k8s.io/api/core/v1"
 )
 
+#Application: #Deployment | #Service
+
 #Deployment: apps.#Deployment & {
 	apiVersion: "apps/v1"
 	kind:       "Deployment"
@@ -12,7 +14,7 @@ import (
 	metadata: #Metadata
 
 	spec: apps.#DeploymentSpec & {
-		replicas:             int | *3 =<5
+		replicas:             int | *3
 		revisionHistoryLimit: int | *5 // Defaults to 5
 
 		template: {
@@ -21,7 +23,7 @@ import (
 			}
 			spec: core.#PodSpec & {
 				containers: [{
-					image: !~"^(.*:latest$).*"
+					image: =~"^.*[^:latest]$"
 					// ... [other fields]
 
 					securityContext: {
@@ -42,24 +44,53 @@ import (
 						}
 
 					}
-					readinessProbe: {
-						httpGet: {
-							port: number | *80
-						}
-						initialDelaySeconds: number | *5
-						failureThreshold:    number | *3
-						periodSeconds:       number | *10
-					}
-					livenessProbe: {
-						httpGet: {
-							port: number | *80
-						}
-						initialDelaySeconds: number | *5
-						failureThreshold:    number | *3
-						periodSeconds:       number | *10
-					}
 				}]
 			}
 		}
 	}
+}
+
+#Service: core.#Service & {
+	apiVersion: string | *"v1"
+	kind:       string | *"Service"
+	metadata:   #Metadata
+
+	spec: {
+		selector: _labels
+		ports: [...#Port]
+		type: string | *"ClusterIP"
+	}
+}
+
+#Container: {
+	name:  string | *"testsvc"
+	image: string
+	ports: [...#ContainerPort] | *[]
+	...
+}
+
+#ContainerPort: {
+	containerPort: int
+	protocol:      string | *"TCP"
+	...
+}
+
+#Port: {
+	port:       int
+	targetPort: int
+	protocol:   string | *"TCP"
+	...
+}
+
+#Metadata: {
+	name:      *"genval" | string
+	namespace: *"genval" | string
+	labels:    _labels
+	...
+}
+
+_labels: {
+	app: string | *"genval"
+	env: *"mytest" | string
+	...
 }

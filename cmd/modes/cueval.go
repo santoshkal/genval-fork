@@ -3,6 +3,8 @@ package modes
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
@@ -48,8 +50,8 @@ func ExecuteCue(resource, reqinput string, verify bool, policies ...string) {
 		return
 	}
 
+	dataPath := reqinput
 	defPath := resource
-	dataFile := reqinput
 	schemaFile := policies
 
 	definitions, err := utils.ProcessInputs(schemaFile)
@@ -68,56 +70,75 @@ func ExecuteCue(resource, reqinput string, verify bool, policies ...string) {
 		Package: "*",
 	}
 
-	res, data, err := utils.ReadAndCompileData(defPath, dataFile)
+	defName := "#" + dataPath
 
+	_, dataSet, err := utils.ReadAndCompileData(dataPath, defPath)
 	if err != nil {
-		log.Fatalf("Error processing data: %v", err)
+		log.Errorf("Error processing data: %v", err)
 		return
 	}
-
-	defName := "#" + defPath
 
 	v, err := cuecore.BuildInstance(ctx, definitions, conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, value := range v {
-		lookUp := cue.ParsePath(defName)
-		def := value.LookupPath(lookUp)
-		if def.Err() != nil {
-			log.Errorf("Error parsing Path: %v", def.Err())
-			return
-		}
+	// Name of the output directory
+	outputDir := "output"
 
-		unifiedValue, err := cuecore.UnifyAndValidate(def, data)
+	// Check if the output directory exists, if not create it
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		err := os.Mkdir(outputDir, 0755)
 		if err != nil {
-			log.Errorf("Validation failed: %v", err)
-			return
+			log.Fatalf("Error creating output directory: %v", err)
 		}
+	}
 
-		// Only generate YAML if verify is set to false -- default
-		if !verify {
-			yamlData, err := parser.CueToYAML(unifiedValue)
-			if err != nil {
-				log.Errorf("Error Marshaling: %v", err)
+	var outputFiles []string
+	for filePath, data := range dataSet {
+		for _, value := range v {
+			lookUp := cue.ParsePath(defName)
+			def := value.LookupPath(lookUp)
+			if def.Err() != nil {
+				log.Errorf("Error parsing Path: %v", def.Err())
 				return
 			}
 
-			err = os.WriteFile(res+".yaml", yamlData, 0644)
+			unifiedValue, err := cuecore.UnifyAndValidate(def, data)
 			if err != nil {
-				log.Errorf("Writing YAML: %v", err)
+				log.Errorf("Validation failed: %v", err)
 				return
 			}
 
+			// Only generate YAML if verify is set to false -- default
+			if !verify {
+				yamlData, err := parser.CueToYAML(unifiedValue)
+				if err != nil {
+					log.Errorf("Error Marshaling: %v", err)
+					return
+				}
+
+				baseName := filepath.Base(filePath)
+				outputFileName := strings.TrimSuffix(baseName, filepath.Ext(baseName)) + ".yaml"
+				fullOutputPath := filepath.Join(outputDir, outputFileName)
+
+				err = os.WriteFile(fullOutputPath, yamlData, 0644)
+				if err != nil {
+					log.Errorf("Writing YAML: %v", err)
+					return
+				}
+				outputFiles = append(outputFiles, fullOutputPath)
+			}
 		}
 	}
 
 	// Only print the success log for generation if verify is false
 	if !verify {
-		log.Infof("%v validation succeeded, generated manifest: %v.yaml\n\n", defPath, res)
+		log.Infof("%v validation succeeded, generated manifests in '%v':\n", dataPath, outputDir)
+		for _, fileName := range outputFiles {
+			fmt.Printf(" - %v\n", fileName)
+		}
 	} else {
-		log.Infof("%v validation succeeded\n\n", defPath)
+		log.Infof("%v validation succeeded\n\n", dataPath)
 	}
-
 }
