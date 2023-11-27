@@ -25,11 +25,13 @@ func BuildInstance(ctx *cue.Context, policies []string, conf *load.Config) ([]cu
 func UnifyAndValidate(def cue.Value, data cue.Value) (cue.Value, error) {
 	value := def.Unify(data)
 	if value.Err() != nil {
+		log.Errorf("Data Unifiction failed: %v", value.Err())
 		return cue.Value{}, value.Err()
 	}
 
 	err := value.Validate(cue.Concrete(true), cue.Final())
 	if err != nil {
+		log.Errorf("Data validation failed: %v", err)
 		return cue.Value{}, err
 	}
 	return value, nil

@@ -11,7 +11,7 @@ import (
 )
 
 var mode, resource, reqinput, output, inputpolicy, outputpolicy string
-var verify bool
+var verify, json bool
 var policies multiValueFlag
 
 func init() {
@@ -23,7 +23,7 @@ func init() {
 	flag.StringVar(&inputpolicy, "inputpolicy", "", "Rego policy to validate JSON input in container mode.")
 	flag.StringVar(&outputpolicy, "outputpolicy", "", "Rego policy to validate generated Dockerfile in container mode.")
 	flag.BoolVar(&verify, "verify", false, "Flag to perform validation and skip generation of final manifest")
-
+	flag.BoolVar(&json, "json", false, "Prints the JSON representation of the input passed")
 	flag.Usage = func() {
 		helpText := `
 Usage of genval:
@@ -87,7 +87,7 @@ func main() {
 		modes.ExecuteK8s(reqinput, policies...)
 	case "tf":
 		// Call the Tf with rego mode's execution function
-		modes.ExecuteTf(reqinput, policies...)
+		modes.ExecuteTf(reqinput, json, policies...)
 	default:
 		fmt.Println("Invalid mode. Choose 'container', 'cue', 'k8s' or 'tf'.")
 		flag.Usage()
