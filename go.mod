@@ -6,13 +6,21 @@ require (
 	cuelang.org/go v0.7.1
 	github.com/fatih/color v1.16.0
 	github.com/google/cel-go v0.19.0
+	github.com/google/go-github/v57 v57.0.0
 	github.com/hashicorp/hcl/v2 v2.19.1
 	github.com/jedib0t/go-pretty/v6 v6.5.4
 	github.com/open-policy-agent/opa v0.61.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/zclconf/go-cty v1.14.2
+	golang.org/x/oauth2 v0.16.0
 	gopkg.in/yaml.v3 v3.0.1
+)
+
+require (
+	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 )
 
 require (
