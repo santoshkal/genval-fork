@@ -4,4 +4,5 @@ coverage.out
 input.yaml
 input.json
 /output
-genval
+Dockerfile*
+.todo
