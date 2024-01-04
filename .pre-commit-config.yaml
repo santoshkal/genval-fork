@@ -1,0 +1,49 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0 
+  hooks:
+  # Checks for files that contain merge conflict strings.
+  - id: check-merge-conflict
+  # Detects aws credentials from the aws cli credentials file.
+  - id: detect-aws-credentials
+    args: [--allow-missing-credentials]
+  # detects the presence of private keys.
+  - id: detect-private-key
+  # Verifies that test files are named correctly.
+  - id: name-tests-test
+  # Trims trailing whitespace in codebase.
+  - id: trailing-whitespace
+  # Protect commit to main branch
+  - id: no-commit-to-branch
+    args: [--branch,main]
+
+# Checks your git commit messages for style.
+- repo: https://github.com/jorisroovers/gitlint
+  rev:  v0.19.1
+  hooks:
+  - id: gitlint
+    name: Scan Commit messages
+
+# Detects hardcoded secrets, security vulnerabilities and policy breaks using GGShield
+- repo: https://github.com/gitguardian/gg-shield
+  rev: v1.22.0
+  hooks:
+  - id: ggshield
+    name: Scan Secrets
+
+# Golang specific Hooks
+# Enforce a stricter Go format than gofmt
+- repo: https://github.com/mvdan/gofumpt
+  rev: v0.5.0
+  hooks:
+  - id: gofumpt
+    name: Extended Go Format
+
+# Runs unit/integration tests in the repo
+- repo: https://github.com/TekWizely/pre-commit-golang
+  rev: v1.0.0-rc.1
+  hooks:
+  - id: go-test-mod
+    name: Run Tests
+  - id: go-test-pkg
+  # args: [] 
