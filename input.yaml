@@ -1,7 +1,7 @@
 dockerfile:
 - stage: 0
   instructions:
-  - from: 
+  - from:
     - "cgr.dev/chainguard/go:latest as builder"
   - env:
     - "APP_HOME=/app"
@@ -19,7 +19,7 @@ dockerfile:
     - src/ $APP_HOME/src/
   - run:
     - "CGO_ENABLED=0 go build -o myapp $APP_HOME/src/main.go"
-  
+
 
 
 - stage: 1
@@ -48,5 +48,5 @@ dockerfile:
 
 # Length of STAGE > 1
 
-# replace ADD to COPY 
+# replace ADD to COPY
 

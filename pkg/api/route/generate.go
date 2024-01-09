@@ -52,5 +52,4 @@ func GenerateEndpoint(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Dockerfile validation succeeded!", "dockerfile": dockerfileContent})
-
 }

@@ -22,7 +22,7 @@ Please follow these steps and note these guidelines to begin contributing:
 ## Set up your Local Development Environment
 
 Make sure you have built the [application from source](./README.md/#build-from-source) on your operating system before you start contributing:
- 
+
 Clone the Genval repository:
 
 ```shell

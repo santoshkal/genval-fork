@@ -19,6 +19,7 @@ func init() {
 	flag.BoolVar(&serverMode, "server", false, "Run in server mode")
 	flag.Parse()
 }
+
 func main() {
 	if serverMode {
 		runServer()
@@ -61,7 +62,7 @@ func main() {
 	dockerfileContent := generate.GenerateDockerfileContent(&data)
 
 	outputData := []byte(dockerfileContent)
-	err = os.WriteFile(outputPath, outputData, 0644)
+	err = os.WriteFile(outputPath, outputData, 0o644)
 	if err != nil {
 		log.Error("Error writing Dockerfile:", err)
 		return

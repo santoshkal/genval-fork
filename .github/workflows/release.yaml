@@ -8,7 +8,7 @@ name: release
 on:
   push:
     tags:
-      - 'v*'  # Run pn Push tag 
+      - 'v*'  # Run pn Push tag
 
 permissions:
    contents: write # needed to write releases
@@ -47,8 +47,7 @@ jobs:
             --cert "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.pem" \
             --signature "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.sig" \
             ./checksums.txt
-          
- 
-          
-        
-      
+
+
+
+

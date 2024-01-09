@@ -24,7 +24,6 @@ const (
 
 // ValidateDockerfileUsingRego validates a Dockerfile using Rego.
 func ValidateDockerfile(dockerfileContent string, regoPolicyPath string) error {
-
 	// Read Rego policy code from file
 	// regoPolicyCode, err := os.ReadFile(regoPolicyPath)
 	// if err != nil {
