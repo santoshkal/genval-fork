@@ -15,9 +15,9 @@ jobs:
   golangci:
     name: "run ci"
     strategy:
-	    matrix:
-		    os: ["windows-latest", "ubuntu-latest", "macOS-latest"]
-		    go: ["1.20.x", "1.21.x"]
+      matrix:
+        os: ["windows-latest", "ubuntu-latest", "macOS-latest"]
+        go: ["1.20.x", "1.21.x"]
 	  runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
         with:
           version: v1.54
           args: -v --config=.ci.yml
-      	- uses: dominikh/staticcheck-action@v1.2.0
+      - uses: dominikh/staticcheck-action@v1.2.0
 	        with:
 		        version: "2023.1.6"
 		        install-go: false
