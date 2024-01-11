@@ -33,8 +33,8 @@ jobs:
           version: v1.54
           args: -v --config=.ci.yml
       - name: Static check
-        uses: dominikh/staticcheck-action@v1.2.0
-	        with:
-	          version: "2023.1.6"
-            install-go: false
-	          cache-key: ${{ matrix.go }}
+        uses: dominikh/staticcheck-action@v1.3.0
+	      with:
+	        version: "2023.1.6"
+          install-go: false
+	        cache-key: ${{ matrix.go }}
