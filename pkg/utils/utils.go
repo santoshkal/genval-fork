@@ -189,7 +189,7 @@ func handleLocalPath(path string) (map[string]cue.Value, error) {
 
 // compileAndAddFile reads, compiles a file, and adds it to the dataMap.
 func compileAndAddFile(filePath string, dataMap map[string]cue.Value) error {
-	fileContent, err := os.ReadFile(filePath)
+	fileContent, err := os.ReadFile(filepath.Clean(filePath))
 	if err != nil {
 		return err
 	}
