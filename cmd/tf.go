@@ -36,7 +36,7 @@ var tfCmd = &cobra.Command{
 Provide a valid terraform file with .tf extension in the --reqinput arg and a set of Rego policies in the
 --policy arg.
 
-The requried input .tf files and  Rego policy files can be either be passed through local file paths or remote URLs,
+The required input .tf files and  Rego policy files can be either be passed through local file paths or remote URLs,
 such as those hosted on GitHub (e.g., https://github.com)
 `,
 	Example: `./genval tf --reqinput=input.json \
