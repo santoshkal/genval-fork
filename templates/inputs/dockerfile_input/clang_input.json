@@ -25,9 +25,9 @@
         },
         {
           "run": [
-            "apk add --no-cache clang clang-dev alpine-sdk dpkg",
-            "apk add --update --no-cache cmake",
-            "apk add --update --no-cache ccache"
+            "apk --no-cache add clang clang-dev alpine-sdk dpkg",
+            "apk --no-cache add --update cmake",
+            "apk --no-cache add --update ccache"
           ]
         },
         {
@@ -38,7 +38,7 @@
         },
         {
           "run": [
-            "make -C $APP_HOME"
+            "--no-cache make -C $APP_HOME"
           ]
         }
       ]
