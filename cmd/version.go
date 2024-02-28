@@ -6,11 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var VERSION = "0.0.1"
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the version number of Hugo",
+	Short: "Print the version number of Genval",
 	Long:  `All software has versions. This is Genval's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Genval config manager v0.0.1 -- HEAD")
+		fmt.Printf("Genval version: v%v\n", VERSION)
 	},
 }
