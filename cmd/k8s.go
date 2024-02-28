@@ -17,10 +17,14 @@ var k8sArgs k8sFlags
 
 func init() {
 	k8sCmd.Flags().StringVarP(&k8sArgs.reqinput, "reqinput", "r", "", "Input JSON/YAML for validating Kubernetes configurations with Rego ")
-	k8sCmd.MarkFlagRequired("reqinput")
-	k8sCmd.Flags().StringVarP(&k8sArgs.policy, "policy", "p", "", "Path for the CEL policy file, polciy can be passed from either Local or from remote URL")
-	k8sCmd.MarkFlagRequired("policy")
+	if err := k8sCmd.MarkFlagRequired("reqinput"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 
+	k8sCmd.Flags().StringVarP(&k8sArgs.policy, "policy", "p", "", "Path for the CEL policy file, polciy can be passed from either Local or from remote URL")
+	if err := k8sCmd.MarkFlagRequired("policy"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(k8sCmd)
 }
@@ -50,7 +54,6 @@ func runk8sCmd(cmd *cobra.Command, args []string) error {
 	err := validate.ValidateWithRego(inputFile, policy)
 	if err != nil {
 		log.Errorf("Validation %v failed", err)
-
 	}
 	log.Infof("K8s manifest %v, validated succussfully.", inputFile)
 	return nil

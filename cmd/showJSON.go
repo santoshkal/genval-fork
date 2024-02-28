@@ -21,7 +21,9 @@ var showJSONArgs showJSONFlags
 
 func init() {
 	showJSONCmd.Flags().StringVarP(&showJSONArgs.reqinput, "reqinput", "r", "", "required input as .tf or a Dockefile ")
-	showJSONCmd.MarkFlagRequired("reqinput")
+	if err := showJSONCmd.MarkFlagRequired("reqinput"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 
 	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(showJSONCmd)

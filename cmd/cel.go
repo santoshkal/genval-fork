@@ -21,10 +21,13 @@ var celArgs celFlags
 
 func init() {
 	celCmd.Flags().StringVarP(&celArgs.reqinput, "reqinput", "r", "", "Input JSON/YAML for validating Kubernetes configurations with CEL")
-	celCmd.MarkFlagRequired("reqinput")
+	if err := celCmd.MarkFlagRequired("reqinput"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	celCmd.Flags().StringVarP(&celArgs.policy, "policy", "p", "", "Path for the CEL policy file, polciy can be passed from either Local or from remote URL")
-	celCmd.MarkFlagRequired("policy")
-
+	if err := celCmd.MarkFlagRequired("policy"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(celCmd)
 }

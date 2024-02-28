@@ -24,13 +24,21 @@ var containerArgs containerFlags
 
 func init() {
 	containerCmd.Flags().StringVarP(&containerArgs.reqinput, "reqinput", "r", "", "Input JSON for generating Dockerfile")
-	containerCmd.MarkFlagRequired("reqinput")
+	if err := containerCmd.MarkFlagRequired("reqinput"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	containerCmd.Flags().StringVarP(&containerArgs.output, "output", "p", "", "Path to write the Generated Dockefile")
-	containerCmd.MarkFlagRequired("output")
+	if err := containerCmd.MarkFlagRequired("output"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	containerCmd.Flags().StringVarP(&containerArgs.inputPolicy, "inputpolicy", "i", "", "Path for the Input policyin Rego, input-policy can be passed from either Local or from remote URL")
-	containerCmd.MarkFlagRequired("input-policy")
+	if err := containerCmd.MarkFlagRequired("input-policy"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	containerCmd.Flags().StringVarP(&containerArgs.outputPolicy, "outputpolicy", "o", "", "Path for Out policy in Rego, Output-policy can be passed from either Local or from remote URL")
-	containerCmd.MarkFlagRequired("output-policy")
+	if err := containerCmd.MarkFlagRequired("output-policy"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(containerCmd)
 }
@@ -54,7 +62,6 @@ Genval supports both local file paths or remote URLs, such as those hosted on Gi
 }
 
 func runContainerCmd(cmd *cobra.Command, args []string) error {
-
 	if len(args) < 1 {
 		return errors.New("missing required args")
 	}
@@ -88,7 +95,7 @@ func runContainerCmd(cmd *cobra.Command, args []string) error {
 	dockerfileContent := generate.GenerateDockerfileContent(&data)
 
 	outputData := []byte(dockerfileContent)
-	err = os.WriteFile(outputPath, outputData, 0644)
+	err = os.WriteFile(outputPath, outputData, 0o644)
 	if err != nil {
 		log.Error("Error writing Dockerfile:", err)
 		return err

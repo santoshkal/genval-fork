@@ -18,10 +18,13 @@ var tfArgs tfFlags
 
 func init() {
 	tfCmd.Flags().StringVarP(&tfArgs.reqinput, "reqinput", "r", "", "Input JSON for validating Terraform .tf files with rego")
-	tfCmd.MarkFlagRequired("reqinput")
+	if err := tfCmd.MarkFlagRequired("reqinput"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	tfCmd.Flags().StringVarP(&tfArgs.policy, "policy", "p", "", "Path for the Rego policy file, polciy can be passed from either Local or from remote URL")
-	tfCmd.MarkFlagRequired("policy")
-
+	if err := tfCmd.MarkFlagRequired("policy"); err != nil {
+		log.Fatalf("Error marking flag as required: %v", err)
+	}
 	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(tfCmd)
 }

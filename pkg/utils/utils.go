@@ -160,7 +160,7 @@ func fetchFileWithCURL(urlStr string) (string, error) {
 	// Create a cue_downloads directory in /tmp to store the files
 	dir := filepath.Join(os.TempDir(), "cue_downloads")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0777); err != nil {
+		if err := os.Mkdir(dir, 0o777); err != nil {
 			// Handle error here
 			log.Println("Failed to create directory:", err)
 		}
@@ -250,6 +250,7 @@ func ReadPolicyFile(policyFile string) ([]byte, error) {
 
 	return policyContent, nil
 }
+
 func ExtractPackageName(content []byte) (string, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(content))
 	for scanner.Scan() {
