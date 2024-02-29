@@ -30,16 +30,16 @@ func init() {
 }
 
 var showJSONCmd = &cobra.Command{
-	Use:   "tf",
+	Use:   "showJSON",
 	Short: "A helper command for printing the JSON representation of .tf and Dockerfile",
-	Long: `showJSON command is a helper command enabling user to visualize the JSON representation of the .tf and Dockerfiles.
+	Long: `showJSON is a helper command enabling user to visualize the JSON representation of the .tf and Dockerfiles.
 The succussfule execution of the command will print the JSON representation of the passed input .tf or a Dockefile to the StdOut.
 Based on this JSON representation, users can write Rego or CEL polices for their technologies and validate them through Genval.
 	
 The required input as .tf or a Dockerfile can be either passed through local file paths or remote URLs, such as those hosted on GitHub (e.g., https://github.com)
 	`,
-	Example: `./genval tf --reqinput=input.json \
-	--policy=<path/to/policy.rego file>`,
+	Example: `./genval showJSON --reqinput=sample.tf or Dockerfile
+	`,
 	RunE: runshowJSONCmd,
 }
 

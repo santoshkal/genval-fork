@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -24,10 +25,14 @@ for a wide range of tools, including Dockerfile, Kubernetes manifests, Terraform
 	},
 }
 
+func init() {
+	rootCmd.SetOut(color.Output)
+	rootCmd.SetErr(color.Error)
+}
+
 func Execute() {
-	rootCmd.AddCommand(versionCmd)
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+	err := rootCmd.Execute()
+	if err != nil {
 		os.Exit(1)
 	}
 }

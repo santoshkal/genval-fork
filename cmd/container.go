@@ -32,11 +32,11 @@ func init() {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	containerCmd.Flags().StringVarP(&containerArgs.inputPolicy, "inputpolicy", "i", "", "Path for the Input policyin Rego, input-policy can be passed from either Local or from remote URL")
-	if err := containerCmd.MarkFlagRequired("input-policy"); err != nil {
+	if err := containerCmd.MarkFlagRequired("inputpolicy"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	containerCmd.Flags().StringVarP(&containerArgs.outputPolicy, "outputpolicy", "o", "", "Path for Out policy in Rego, Output-policy can be passed from either Local or from remote URL")
-	if err := containerCmd.MarkFlagRequired("output-policy"); err != nil {
+	if err := containerCmd.MarkFlagRequired("outputpolicy"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	// rootCmd.AddCommand(versionCmd)

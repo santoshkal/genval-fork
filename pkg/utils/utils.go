@@ -3,21 +3,22 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/load"
+	"github.com/google/go-github/v57/github"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 )
 
 // TempDirWithCleanup creates a temporary directory and returns its path along with a cleanup function.
@@ -32,106 +33,28 @@ func TempDirWithCleanup() (dirPath string, cleanupFunc func(), err error) {
 	}, nil
 }
 
-// GenerateOverlay creates an overlay to store cue schemas
-func GenerateOverlay(staticFS fs.FS, td string, policies []string) (map[string]load.Source, error) {
-	overlay := make(map[string]load.Source)
+// GetDefinitions reads the policies/definitions passed in as CLI arg and returns filenames
+func GetDefinitions(dirPath string) ([]string, error) {
+	var filenames []string
 
-	// Walk through and add files from the embedded fs
-	err := fs.WalkDir(staticFS, ".", func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.Type().IsRegular() {
-			return nil
-		}
-		f, err := staticFS.Open(p)
-		if err != nil {
-			return err
-		}
-		byts, err := io.ReadAll(f)
-		if err != nil {
-			return err
-		}
-		op := filepath.Join(td, p)
-		overlay[op] = load.FromBytes(byts)
-		return nil
-	})
+	entries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err
 	}
-
-	// Add files from policies
-	for _, filePath := range policies {
-		fileBytes, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Errorf("Error reading schema:%v", err)
-			return nil, err
+	// Skip directories
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
 		}
-		overlay[filepath.Join(td, filepath.Base(filePath))] = load.FromBytes(fileBytes)
+		fileName := entry.Name()
+		filenames = append(filenames, fileName)
 	}
 
-	return overlay, nil
+	return filenames, nil
 }
 
 func toCamelCase(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
-}
-
-// ReadAndCompileData reads the content from the given file path to cue Value, returns an error if compiling fails.
-func ReadAndCompileData(dataPath string, defPath string) (dataMap map[string]cue.Value, titleCaseDefPath string, err error) {
-	// Initialize the context and dataMap
-	ctx := cuecontext.New()
-	dataMap = make(map[string]cue.Value)
-
-	u, err := url.ParseRequestURI(dataPath)
-	if err == nil && u.Scheme != "" && u.Host != "" {
-
-		// Handle single file
-		ds, err := ReadPolicyFile(dataPath)
-		if err != nil {
-			return nil, "", err
-		}
-		compiledData := ctx.CompileBytes(ds)
-		if compiledData.Err() != nil {
-			return nil, "", compiledData.Err()
-		}
-		dataMap[strings.TrimSuffix(filepath.Base(dataPath), filepath.Ext(dataPath))] = compiledData
-
-	} else {
-		// Check if the path is a directory or a single file
-		info, err := os.Stat(dataPath)
-		if err != nil {
-			return nil, "", err
-		}
-
-		if info.IsDir() {
-			// Handle directory
-			err = filepath.Walk(dataPath, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				if !info.IsDir() {
-					ds, err := ReadPolicyFile(path)
-					if err != nil {
-						return err
-					}
-					compiledData := ctx.CompileBytes(ds)
-					if compiledData.Err() != nil {
-						return compiledData.Err()
-					}
-					// Use the base file name as the map key
-					dataMap[path] = compiledData
-				}
-				return nil
-			})
-			if err != nil {
-				return nil, "", err
-			}
-		}
-	}
-
-	titleCaseDefPath = toCamelCase(defPath)
-	return dataMap, titleCaseDefPath, nil
 }
 
 // isURL checks if the given string is a valid URL.
@@ -176,6 +99,25 @@ func fetchFileWithCURL(urlStr string) (string, error) {
 	}
 
 	return filepath.Join(dir, filename), nil
+}
+
+func ExtractModule(dirPath string) (string, error) {
+	moduleFilePath := filepath.Join(dirPath, "cue.mod", "module.cue")
+	// Read the module.cue file
+	content, err := os.ReadFile(moduleFilePath)
+	if err != nil {
+		return "", err
+	}
+	// Regular expression to find the module string
+	re := regexp.MustCompile(`module:\s*"(.*?)"`)
+	log.Infof("REGEX: %v", re)
+	matches := re.FindStringSubmatch(string(content))
+	if len(matches) < 2 {
+		return "", errors.New("module not found in module.cue")
+	}
+
+	// Return the extracted module string
+	return matches[1], nil
 }
 
 // ProcessInputs processes the CLI args, fetches content from URLs if needed, and returns a slice of filenames.
@@ -269,4 +211,51 @@ func ExtractPackageName(content []byte) (string, error) {
 	}
 
 	return "", io.EOF
+}
+
+func CreateGitHubClient(token string) *github.Client {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+	return client
+}
+
+func FetchFromGitHub(urlStr string, client *github.Client) (*github.RepositoryContent, []*github.RepositoryContent, error) {
+	// Parse the URL
+	u, err := url.Parse(urlStr)
+	if err != nil {
+		log.Errorf("cannot parse URL '%s': %v", urlStr, err)
+		return nil, nil, err
+	}
+
+	if strings.HasPrefix(u.Hostname(), "github.com") || strings.HasPrefix(u.Hostname(), "raw.githubusercontent.com") {
+		// Extract owner, repo, branch/commit, and path from the URL
+		splitPath := strings.Split(strings.TrimPrefix(u.Path, "/"), "/")
+
+		owner := splitPath[0]
+		repo := splitPath[1]
+		var branch string
+		var filePath string
+		if strings.HasPrefix(u.Hostname(), "github.com") {
+			branch = splitPath[3]
+			filePath = strings.Join(splitPath[4:], "/")
+		}
+		if strings.HasPrefix(u.Hostname(), "raw.githubusercontent.com") {
+			branch = splitPath[2]
+			filePath = strings.Join(splitPath[3:], "/")
+		}
+
+		// Get the file content from GitHub API
+		fileCon, dirCon, _, err := client.Repositories.GetContents(context.Background(), owner, repo, filePath, &github.RepositoryContentGetOptions{
+			Ref: branch,
+		})
+		if err != nil {
+			log.Errorf("failed fetching content from GitHub: %v", err)
+			return nil, nil, err
+		}
+		return fileCon, dirCon, nil
+	}
+	// If it's not a GitHub URL, return an error
+	return nil, nil, fmt.Errorf("unsupported URL: %s", urlStr)
 }
