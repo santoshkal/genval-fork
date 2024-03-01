@@ -6,6 +6,7 @@ require (
 	cuelang.org/go v0.7.1
 	github.com/fatih/color v1.16.0
 	github.com/google/cel-go v0.20.0
+	github.com/google/go-github/v57 v57.0.0
 	github.com/hashicorp/hcl/v2 v2.19.1
 	github.com/jedib0t/go-pretty/v6 v6.5.4
 	github.com/open-policy-agent/opa v0.61.0
@@ -13,23 +14,15 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	github.com/zclconf/go-cty v1.14.2
+	golang.org/x/oauth2 v0.17.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/go-openapi/errors v0.21.0 // indirect
-	github.com/go-openapi/strfmt v0.22.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-github/v57 v57.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jedib0t/go-pretty v4.3.0+incompatible // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	go.mongodb.org/mongo-driver v1.14.0 // indirect
-	golang.org/x/oauth2 v0.17.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 )
 

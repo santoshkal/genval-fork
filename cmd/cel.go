@@ -28,7 +28,6 @@ func init() {
 	if err := celCmd.MarkFlagRequired("policy"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
-	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(celCmd)
 }
 

@@ -53,10 +53,6 @@ func GetDefinitions(dirPath string) ([]string, error) {
 	return filenames, nil
 }
 
-func toCamelCase(s string) string {
-	return strings.ToLower(s[:1]) + s[1:]
-}
-
 // isURL checks if the given string is a valid URL.
 func isURL(s string) bool {
 	u, err := url.Parse(s)

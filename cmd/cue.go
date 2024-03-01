@@ -41,7 +41,7 @@ func init() {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	cueCmd.Flags().BoolVarP(&cueArgs.verify, "verify", "v", false, "Verify only based on the policy")
-	// rootCmd.AddCommand(versionCmd)
+
 	rootCmd.AddCommand(cueCmd)
 }
 
@@ -50,7 +50,7 @@ var cueCmd = &cobra.Command{
 	Short: "Generate and Validate Kubernetes configuration with Cuelang",
 	Long: `
 A user can pass in a JSON/YAML manifests for Kubernetes or any other Kubernetes based technologies to genval, the passed input willbe validated,
-with the Cue policies (Definitions in Cue's terminolgy) and the complete manifests willbe generasted in the ./output directory in pwd.
+with the Cue policies (Definitions in Cue's terminology) and the complete manifests willbe generasted in the ./output directory in pwd.
 
 Provides flexibility of supplying input files in YAML or JSON formats, as well as policy files for input and output policies.
 Genval supports both local file paths or remote URLs, such as those hosted on GitHub (e.g., https://github.com)

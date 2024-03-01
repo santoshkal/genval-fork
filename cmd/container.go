@@ -39,7 +39,6 @@ func init() {
 	if err := containerCmd.MarkFlagRequired("outputpolicy"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
-	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(containerCmd)
 }
 

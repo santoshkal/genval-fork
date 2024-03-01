@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-
+	//
 	"github.com/spf13/cobra"
 )
 
@@ -17,3 +17,7 @@ var (
 		},
 	}
 )
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}

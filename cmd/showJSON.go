@@ -25,7 +25,6 @@ func init() {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 
-	// rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(showJSONCmd)
 }
 
