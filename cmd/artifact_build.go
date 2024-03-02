@@ -57,8 +57,7 @@ func runBuildCmd(cmd *cobra.Command, args []string) error {
 	inputPath := buildArgs.reqinput
 	outputPath := buildArgs.output
 
-	inputDir := filepath.Dir(inputPath)
-	if err := checkPathExists(inputDir); err != nil {
+	if err := checkPathExists(inputPath); err != nil {
 		log.Errorf("Error reading %s: %v\n", inputPath, err)
 		os.Exit(1)
 	}
@@ -78,9 +77,17 @@ func runBuildCmd(cmd *cobra.Command, args []string) error {
 	log.Printf("✔ Artifact created successfully at: %s\n", outputPath)
 	return nil
 }
+
 func checkPathExists(path string) error {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("path %s does not exist", path)
+	}
+	if err != nil {
 		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("path %s is not a directory", path)
 	}
 	return nil
 }
