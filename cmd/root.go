@@ -10,9 +10,8 @@ import (
 
 // rootCommand returns a cobra command for genvalctl CLI tool
 var rootCmd = &cobra.Command{
-	Use:     "genval",
-	Version: "v0.0.1",
-	Short:   "genval is a CLI tool to generate and validate files",
+	Use:   "genval",
+	Short: "genval is a CLI tool to generate and validate files",
 	Long: `
 Genval is a versatile Go utility that simplifies configuration management by Generating and validating cobfig files
 for a wide range of tools, including Dockerfile, Kubernetes manifests, Terraform files, Tekton, ArgoCD and more.

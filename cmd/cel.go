@@ -33,11 +33,11 @@ func init() {
 
 var celCmd = &cobra.Command{
 	Use:   "cel",
-	Short: "Validate Kubernetes and related manidests using Common Expression Language (CEL) policies",
+	Short: "Validate Kubernetes and related manifests using Common Expression Language (CEL) policies",
 	Long: `A user need to pass the Kubernetes manifest in YAML/JSON format as reqinput and a set of CEL policies
 as a policy file for validation.
 
-The required input file in YAML/JSON format or CEL policy file can be supplied from either a local file path
+The required input file in YAML/JSON format or CEL policy file can be supplied either through a local file path
 or from remote URL's such as those hosted on GitHub (e.g., https://github.com)
  `,
 	Example: `./genval cel --reqinput=input.json \
@@ -53,7 +53,6 @@ func runCelCmd(cmd *cobra.Command, args []string) error {
 	policy := celArgs.policy
 
 	var data interface{}
-	// TODO: Change func name
 	err := parser.ParseDockerfileInput(string(inputFile), &data)
 	if err != nil {
 		log.Fatalf("Unable to process input: %v", err)

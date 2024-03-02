@@ -44,6 +44,10 @@ func init() {
 }
 
 func runPushCmd(cmd *cobra.Command, args []string) error {
+
+	// input := pushArgs.reqinput
+	// url := pushArgs.url
+	// annotations := pushArgs.annotations
 	// Add functionality to push artifact
 	return nil
 }
