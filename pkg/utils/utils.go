@@ -80,11 +80,9 @@ func fetchFileWithCURL(urlStr string) (string, error) {
 	dir := filepath.Join(os.TempDir(), "cue_downloads")
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err := os.Mkdir(dir, 0o777); err != nil {
-			// Handle error here
 			log.Println("Failed to create directory:", err)
 		}
 	} else if err != nil {
-		// Handle other potential errors from os.Stat
 		log.Println("Error checking directory:", err)
 	}
 
@@ -112,7 +110,6 @@ func ExtractModule(dirPath string) (string, error) {
 		return "", errors.New("module not found in module.cue")
 	}
 
-	// Return the extracted module string
 	return matches[1], nil
 }
 
@@ -254,4 +251,18 @@ func FetchFromGitHub(urlStr string, client *github.Client) (*github.RepositoryCo
 	}
 	// If it's not a GitHub URL, return an error
 	return nil, nil, fmt.Errorf("unsupported URL: %s", urlStr)
+}
+
+func CheckPathExists(path string) error {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("path %s does not exist", path)
+	}
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("path %s is not a directory", path)
+	}
+	return nil
 }

@@ -8,7 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/intelops/genval/pkg/builder"
+	"github.com/intelops/genval/pkg/oci"
+	"github.com/intelops/genval/pkg/utils"
 )
 
 var buildCmd = &cobra.Command{
@@ -57,13 +58,13 @@ func runBuildCmd(cmd *cobra.Command, args []string) error {
 	inputPath := buildArgs.reqinput
 	outputPath := buildArgs.output
 
-	if err := checkPathExists(inputPath); err != nil {
+	if err := utils.CheckPathExists(inputPath); err != nil {
 		log.Errorf("Error reading %s: %v\n", inputPath, err)
 		os.Exit(1)
 	}
 
 	outputDir := filepath.Dir(outputPath)
-	if err := checkPathExists(outputDir); err != nil {
+	if err := utils.CheckPathExists(outputDir); err != nil {
 		log.Errorf("Error reading %s: %v\n", outputPath, err)
 		os.Exit(1)
 	}
@@ -71,23 +72,9 @@ func runBuildCmd(cmd *cobra.Command, args []string) error {
 	log.Printf("✔ Building artifact from: %v", inputPath)
 
 	// Create a tarball from the input path
-	if err := builder.CreateTarball(inputPath, outputPath); err != nil {
+	if err := oci.CreateTarball(inputPath, outputPath); err != nil {
 		return fmt.Errorf("creating tarball: %w", err)
 	}
 	log.Printf("✔ Artifact created successfully at: %s\n", outputPath)
-	return nil
-}
-
-func checkPathExists(path string) error {
-	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return fmt.Errorf("path %s does not exist", path)
-	}
-	if err != nil {
-		return err
-	}
-	if !info.IsDir() {
-		return fmt.Errorf("path %s is not a directory", path)
-	}
 	return nil
 }

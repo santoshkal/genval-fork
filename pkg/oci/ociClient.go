@@ -1,15 +1,19 @@
-package builder
+package oci
 
 //TODO: Change Package name
 
 import (
 	"archive/tar"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+
+	"github.com/google/go-containerregistry/pkg/name"
 )
 
 // createTarball creates a tarball from a file or directory.
@@ -74,3 +78,27 @@ func CreateTarball(sourcePath, outputPath string) error {
 	}
 	return err
 }
+
+// ParseSourcetURL validates the OCI URL and returns the address of the artifact.
+func ParseSourcetURL(ociURL string) (string, error) {
+	if !strings.HasPrefix(ociURL, OCIRepoPrefix) {
+		return "", fmt.Errorf("URL must be in format 'oci://<domain>/<org>/<repo>'")
+	}
+
+	url := strings.TrimPrefix(ociURL, OCIRepoPrefix)
+	if _, err := name.ParseReference(url); err != nil {
+		return "", fmt.Errorf("'%s' invalid URL: %w", ociURL, err)
+	}
+
+	return url, nil
+}
+
+// func Options(ctx context.Context, creds string) []crane.Option {
+// 	var opts []crane.Option
+
+// 	opts = append(opts, crane.WithUserAgent(UserAgent), crane.WithContext(ctx))
+// 	if creds != "" {
+// 		var authConfig authn.AuthConfig
+
+// 	}
+// }
