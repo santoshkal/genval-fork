@@ -4,16 +4,18 @@ package oci
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/google/go-containerregistry/pkg/name"
+	log "github.com/sirupsen/logrus"
 )
 
 // createTarball creates a tarball from a file or directory.
@@ -79,26 +81,64 @@ func CreateTarball(sourcePath, outputPath string) error {
 	return err
 }
 
-// ParseSourcetURL validates the OCI URL and returns the address of the artifact.
-func ParseSourcetURL(ociURL string) (string, error) {
-	if !strings.HasPrefix(ociURL, OCIRepoPrefix) {
-		return "", fmt.Errorf("URL must be in format 'oci://<domain>/<org>/<repo>'")
+func ParseAnnotations(args []string) (map[string]string, error) {
+	annotations := map[string]string{}
+	for _, annotation := range args {
+		kv := strings.Split(annotation, "=")
+		if len(kv) != 2 {
+			return annotations, fmt.Errorf("invalid annotation %s, must be in the format key=value", annotation)
+		}
+		annotations[kv[0]] = kv[1]
 	}
 
-	url := strings.TrimPrefix(ociURL, OCIRepoPrefix)
-	if _, err := name.ParseReference(url); err != nil {
-		return "", fmt.Errorf("'%s' invalid URL: %w", ociURL, err)
-	}
-
-	return url, nil
+	return annotations, nil
 }
 
-// func Options(ctx context.Context, creds string) []crane.Option {
-// 	var opts []crane.Option
+// SignCosign signs an image (`imageRef`) using a cosign private key (`keyRef`)
+func SignCosign(imageRef string) error {
+	cosignExecutable, err := exec.LookPath("cosign")
+	if err != nil {
+		return fmt.Errorf("executing cosign failed: %w", err)
+	}
 
-// 	opts = append(opts, crane.WithUserAgent(UserAgent), crane.WithContext(ctx))
-// 	if creds != "" {
-// 		var authConfig authn.AuthConfig
+	cosignCmd := exec.Command(cosignExecutable, []string{"sign"}...)
+	cosignCmd.Env = os.Environ()
+	cosignCmd.Environ()
 
-// 	}
-// }
+	// use keyless mode
+	cosignCmd.Args = append(cosignCmd.Args, "--yes")
+	cosignCmd.Args = append(cosignCmd.Args, imageRef)
+
+	err = processCosignIO(cosignCmd)
+	if err != nil {
+		return err
+	}
+
+	return cosignCmd.Wait()
+}
+func processCosignIO(cosignCmd *exec.Cmd) error {
+	stdout, err := cosignCmd.StdoutPipe()
+	if err != nil {
+		log.Error(err, "cosign stdout pipe failed")
+	}
+	stderr, err := cosignCmd.StderrPipe()
+	if err != nil {
+		log.Error(err, "cosign stderr pipe failed")
+	}
+
+	merged := io.MultiReader(stdout, stderr)
+	scanner := bufio.NewScanner(merged)
+
+	if err := cosignCmd.Start(); err != nil {
+		return fmt.Errorf("executing cosign failed: %w", err)
+	}
+
+	for scanner.Scan() {
+		log.Info("cosign: " + scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		log.Error(err, "cosign stdout/stderr scanner failed")
+	}
+
+	return nil
+}

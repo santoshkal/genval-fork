@@ -15,7 +15,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/google/go-github/v57/github"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -265,4 +267,23 @@ func CheckPathExists(path string) error {
 		return fmt.Errorf("path %s is not a directory", path)
 	}
 	return nil
+}
+
+func GetGitRemoteURL() (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get Git remote URL: %w", err)
+	}
+
+	remoteURL := strings.TrimSpace(string(output))
+	return remoteURL, nil
+}
+
+// StartSpinner starts a spinner with the given message.
+func StartSpinner(msg string) *spinner.Spinner {
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond, spinner.WithWriter(os.Stderr))
+	s.Suffix = " " + msg
+	s.Start()
+	return s
 }

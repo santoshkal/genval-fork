@@ -3,7 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
+	"time"
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/compression"
@@ -41,7 +42,7 @@ type pushFlags struct {
 	source      string
 	annotations []string
 	tag         string
-	sign        string
+	sign        bool
 }
 
 var pushArgs pushFlags
@@ -52,12 +53,12 @@ func init() {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	pushCmd.Flags().StringVarP(&pushArgs.source, "source", "s", ".", "Source URl for the registry")
-	if err := pushCmd.MarkFlagRequired("url"); err != nil {
+	if err := pushCmd.MarkFlagRequired("source"); err != nil {
 		log.Fatalf("Error marking flag as required: %v", err)
 	}
 	pushCmd.Flags().StringArrayVarP(&pushArgs.annotations, "annotations", "a", nil, "Set custom annotation in <key>=<value> format")
 	pushCmd.Flags().StringVarP(&pushArgs.tag, "tag", "t", "", "update the artifact with a tag")
-	pushCmd.Flags().StringVarP(&pushArgs.sign, "sign", "s", "", "Sign the artifact with Cosign")
+	pushCmd.Flags().BoolVarP(&pushArgs.sign, "sign", "c", false, "If set to true, signs the artifact with cosign in keyless mode")
 	artifactCmd.AddCommand(pushCmd)
 }
 
@@ -77,11 +78,13 @@ func runPushCmd(cmd *cobra.Command, args []string) error {
 		os.Exit(1)
 	}
 
-	outputPath, err := os.MkdirTemp("", "artifacts.tar.gz")
+	tempDir, err := os.MkdirTemp("", "artifacts")
 	if err != nil {
 		log.Printf("Error creating Temp dir: %v", err)
 	}
-	defer os.RemoveAll(outputPath)
+	defer os.RemoveAll(tempDir)
+
+	outputPath := filepath.Join(tempDir, "artifact.tar.gz")
 
 	log.Printf("✔ Building artifact from: %v", inputPath)
 
@@ -91,30 +94,29 @@ func runPushCmd(cmd *cobra.Command, args []string) error {
 	}
 	log.Println("✔ Artifact created successfully")
 
-	url, err := oci.ParseSourcetURL(source)
-	if err != nil {
-		log.Printf("Error parsing source: %v", err)
-	}
+	// url, err := oci.ParseSourcetURL(source)
+	// if err != nil {
+	// 	log.Printf("Error parsing source: %v", err)
+	// }
 
-	ref, err := name.ParseReference(url)
+	ref, err := name.ParseReference(source)
 	if err != nil {
 		return err
 	}
-
-	annotations := map[string]string{}
-	for _, annotation := range pushArgs.annotations {
-		kv := strings.Split(annotation, "=")
-		if len(kv) != 2 {
-			return fmt.Errorf("invalid annotation %s, must be in the format key=value", annotation)
-		}
-		annotations[kv[0]] = kv[1]
+	remoteURL, err := utils.GetGitRemoteURL()
+	if err != nil {
+		return err
+	}
+	annotations, err := oci.ParseAnnotations(pushArgs.annotations)
+	if err != nil {
+		return err
 	}
 
 	img := mutate.MediaType(empty.Image, types.OCIManifestSchema1)
 	img = mutate.ConfigMediaType(img, oci.ConfigMediaType)
 	img = mutate.Annotations(img, annotations).(v1.Image)
 
-	layer, err := tarball.LayerFromFile(ref.String(),
+	layer, err := tarball.LayerFromFile(outputPath,
 		tarball.WithMediaType(oci.ContentMediaType),
 		tarball.WithCompression(compression.GZip),
 		tarball.WithCompressedCaching)
@@ -122,23 +124,40 @@ func runPushCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		log.Errorf("Creating content layer failed: %v", err)
 	}
-
 	img, err = mutate.Append(img, mutate.Addendum{
 		Layer: layer,
 		Annotations: map[string]string{
-			oci.ContentTypeAnnotation: "",
+			oci.ContentTypeAnnotation: "genval/bundle",
+			oci.CreatedAnnotation:     time.Now().UTC().Format(time.RFC3339),
+			oci.SourceAnnotation:      remoteURL,
 		},
 	})
-
 	if err != nil {
-		log.Errorf("appending content to artifact failed: %w", err)
+		log.Errorf("appending content to artifact failed: %v", err)
 	}
-
+	spin := utils.StartSpinner("pushing artifact")
+	defer spin.Stop()
 	opts := crane.WithAuthFromKeychain((authn.DefaultKeychain))
 
 	if err := crane.Push(img, ref.String(), opts); err != nil {
 		log.Fatalf("Error pushing artifact: %v", err)
 	}
+	spin.Stop()
+	digest, err := img.Digest()
+	if err != nil {
+		log.Errorf("parsing artifact digest failed: %s", err)
+	}
 
+	digestURL := ref.Context().Digest(digest.String()).String()
+
+	if pushArgs.sign {
+		err := oci.SignCosign(digestURL)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Printf("✔ Artifact pushed successfully to: %v \n with Digest: %v", source, digest)
+	log.Printf("Digest URL: %v", digestURL)
 	return nil
 }
