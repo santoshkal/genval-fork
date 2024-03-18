@@ -39,8 +39,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: verify release
-      #   run: |
+      - name: verify release
+        run: |
+          bash ./veify.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       #     COMMIT=$(git rev-list --tags --max-count=1)
       #     TAG=$(git describe --tags ${COMMIT})
       #     wget https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt
