@@ -19,19 +19,15 @@ for arch in "${archs[@]}"; do
     base_url="https://github.com/santoshkal/genval-fork/releases/download/v${version}/genval_${version}_${arch}.tar.gz"
     
     # Download the main release file
-    # echo "Downloading genval_${version}_${arch}.tar.gz..."
     curl -L -O "${base_url}" >/dev/null 2>&1
     
     # Download the signature file
-    # echo "Downloading genval${version}_${arch}.tar.gz.sig..."
     curl -L -O "${base_url}.sig" >/dev/null 2>&1
     
     # Download the certificate file
-    # echo "Downloading genval${version}_${arch}.tar.gz.crt..."
     curl -L -O "${base_url}.crt" >/dev/null 2>&1
     
     # Verify the downloaded file using cosign
-    # echo "Verifying genval_${version}_${arch}.tar.gz..."
     cosign verify-blob \
         --signature "genval_${version}_${arch}.tar.gz.sig" \
         --certificate "genval_${version}_${arch}.tar.gz.crt" \
@@ -47,7 +43,3 @@ for arch in "${archs[@]}"; do
         exit 1
     fi
 done
-    # echo "Verification for all OS's and Archs was successful."
-
-# --cert=https://github.com/santoshkal/genval-fork/releases/download/v0.1.7/genval_0.1.7_darwin_amd64.tar.gz.crt
-# https://github.com/santoshkal/genval-fork/releases/download/v0.1.7/genval_0.1.7_darwin_arm64.tar.gz

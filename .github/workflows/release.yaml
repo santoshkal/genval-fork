@@ -41,7 +41,7 @@ jobs:
 
       - name: verify release
         run: |
-          bash ./verify.sh
+          bash ./.github/workflows/verify.sh
 
 
 
