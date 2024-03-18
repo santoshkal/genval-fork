@@ -2,6 +2,7 @@ project_name: genval
 
 # setups builds for linux, windows and darwin on amd64 and arm64
 builds:
+- main: ./cmd/
 - env:
   - CGO_ENABLED=0
   goos:
