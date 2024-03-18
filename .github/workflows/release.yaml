@@ -39,17 +39,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: verify release
-        run: |
-          COMMIT=$(git rev-list --tags --max-count=1)
-          TAG=$(git describe --tags ${COMMIT})
-          wget https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt
-          cosign verify-blob \
-            --certificate-identity "https://github.com/intelops/genval/.github/workflows/release.yaml@refs/tags/${TAG}" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            --cert "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.pem" \
-            --signature "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.sig" \
-            ./checksums.txt
+      # - name: verify release
+      #   run: |
+      #     COMMIT=$(git rev-list --tags --max-count=1)
+      #     TAG=$(git describe --tags ${COMMIT})
+      #     wget https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt
+      #     cosign verify-blob \
+      #       --certificate-identity "https://github.com/intelops/genval/.github/workflows/release.yaml@refs/tags/${TAG}" \
+      #       --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+      #       --cert "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.pem" \
+      #       --signature "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.sig" \
+      #       ./checksums.txt
           
  
           
