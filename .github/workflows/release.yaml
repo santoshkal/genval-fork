@@ -51,6 +51,19 @@ jobs:
       #       --signature "https://github.com/intelops/genval/releases/download/${TAG}/checksums.txt.sig" \
       #       ./checksums.txt
           
+
+# NEW Release Verify command:
+
+# curl -L -O https://github.com/santoshkal/genval-fork/releases/download/v0.1.3/genval-0.1.3.tar.gz \
+  # -O https://github.com/santoshkal/genval-fork/releases/download/v0.1.3/genval-0.1.3.tar.gz.pem \
+  # -O https://github.com/santoshkal/genval-fork/releases/download/v0.1.3/genval-0.1.3.tar.gz.sig
+
+  # cosign verify-blob \
+  # --signature ./genval-0.1.3.tar.gz.sig \
+  # --cert ./genval-0.1.3.tar.gz.crt \
+  # --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  # --certificate-identity "https://github.com/intelops/genval/.github/workflows/release.yaml@refs/tags/v0.1.3" \
+  # ./genval-0.1.3.tar.gz
  
           
         
