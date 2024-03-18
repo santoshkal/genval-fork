@@ -41,7 +41,7 @@ jobs:
 
       - name: verify release
         run: |
-          bash ./veify.sh
+          bash ./verify.sh
 
 
 
