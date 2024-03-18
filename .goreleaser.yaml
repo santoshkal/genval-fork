@@ -40,6 +40,6 @@ signs:
     - '--output-signature=${signature}'
     - '${artifact}'
     - "--yes" 
-  artifacts: binary
+  artifacts: source
   output: true
 
