@@ -11,7 +11,7 @@ on:
       - 'v*'  # Run pn Push tag 
 
 permissions:
-   contents: write # needed to write releases
+   contents: write # needed to write releasesgit
    id-token: write # needed for keyless signing
    packages: write # needed for ghcr access
 
