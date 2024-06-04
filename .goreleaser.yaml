@@ -17,12 +17,12 @@ builds:
     - -trimpath
   ldflags:
     - -s -w
-    - -X main.Version={{ .Tag }}
+    - -X sigs.k8s.io/release-utils/version.Version={{ .Tag }}
     - -X .Runtime.Goarch={{ .Arch }}
     - -X .Runtime.Gooss={{ .Os }}
-    - -X main.Date={{ .CommitDate }}
-    - -X main.Commit={{ .FullCommit }}
-    - -X main.GitTreeState={{ .GitTreeState }}
+    - -X sigs.k8s.io/release-utils/version.Date={{ .CommitDate }}
+    - -X sigs.k8s.io/release-utils/version.Commit={{ .FullCommit }}
+    - -X sigs.k8s.io/release-utils/version.GitTreeState={{ .GitTreeState }}
 
 
 checksum:
