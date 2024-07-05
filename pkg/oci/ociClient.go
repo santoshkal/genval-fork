@@ -22,9 +22,10 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
-	"github.com/intelops/genval/pkg/cuecore"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/release-utils/version"
+
+	"github.com/intelops/genval/pkg/cuecore"
 )
 
 func ParseAnnotations(args []string) (map[string]string, error) {
@@ -32,7 +33,10 @@ func ParseAnnotations(args []string) (map[string]string, error) {
 	for _, annotation := range args {
 		kv := strings.Split(annotation, "=")
 		if len(kv) != 2 {
-			return annotations, fmt.Errorf("invalid annotation %s, must be in the format key=value", annotation)
+			return annotations, fmt.Errorf(
+				"invalid annotation %s, must be in the format key=value",
+				annotation,
+			)
 		}
 		annotations[kv[0]] = kv[1]
 	}
@@ -67,7 +71,12 @@ func CheckTagAndPullArchive(url, tool, creds string, archivePath *os.File) error
 
 	opts = append(opts, crane.WithAuth(auth))
 
-	topts, err := GenerateCraneOptions(context.Background(), ref.Context().Registry, auth, []string{ref.Context().Scope(transport.PullScope)})
+	topts, err := GenerateCraneOptions(
+		context.Background(),
+		ref.Context().Registry,
+		auth,
+		[]string{ref.Context().Scope(transport.PullScope)},
+	)
 	if err != nil {
 		return fmt.Errorf("error creating transport for pull: %v", err)
 	}
@@ -227,7 +236,12 @@ func PullArtifact(ctx context.Context, creds, dest, path string) error {
 
 	opts = append(opts, crane.WithAuth(auth))
 
-	topts, err := GenerateCraneOptions(context.Background(), ref.Context().Registry, auth, []string{ref.Context().Scope(transport.PullScope)})
+	topts, err := GenerateCraneOptions(
+		context.Background(),
+		ref.Context().Registry,
+		auth,
+		[]string{ref.Context().Scope(transport.PullScope)},
+	)
 	if err != nil {
 		return fmt.Errorf("error creating transport for pull:%v", err)
 	}
@@ -314,10 +328,20 @@ func GetCreds(creds string) (authn.Authenticator, error) {
 
 // Most parts of GenerateCraneOptions and its related funcs are copied from https://github.com/google/go-containerregistry/blob/1b4e4078a545f2b6f96766a064b45ee77cdbefdd/pkg/v1/remote/options.go#L128
 // GenerateCraneOptions generates an crane options object to perform remote operations
-func GenerateCraneOptions(ctx context.Context, ref name.Registry, auth authn.Authenticator, scopes []string) (crane.Option, error) {
+func GenerateCraneOptions(
+	ctx context.Context,
+	ref name.Registry,
+	auth authn.Authenticator,
+	scopes []string,
+) (crane.Option, error) {
 	var retryTransport http.RoundTripper
 
-	userAgent := fmt.Sprintf("genval/%s (%s; %s)", version.GetVersionInfo().GitVersion, runtime.GOOS, runtime.GOARCH)
+	userAgent := fmt.Sprintf(
+		"genval/%s (%s; %s)",
+		version.GetVersionInfo().GitVersion,
+		runtime.GOOS,
+		runtime.GOARCH,
+	)
 	retryTransport = remote.DefaultTransport.(*http.Transport).Clone()
 	if logs.Enabled(logs.Debug) {
 		retryTransport = transport.NewLogger(retryTransport)
@@ -346,7 +370,9 @@ func GenerateCraneOptions(ctx context.Context, ref name.Registry, auth authn.Aut
 var defaultRetryPredicate = func(err error) bool {
 	// Various failure modes here, as we're often reading from and writing to
 	// the network.
-	if isTemporary(err) || errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, io.EOF) || errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET) {
+	if isTemporary(err) || errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, io.EOF) ||
+		errors.Is(err, syscall.EPIPE) ||
+		errors.Is(err, syscall.ECONNRESET) {
 		logs.Warn.Printf("retrying %v", err)
 		return true
 	}
